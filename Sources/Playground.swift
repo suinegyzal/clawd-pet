@@ -179,6 +179,11 @@ final class Playground {
         pollIn = 0
     }
 
+    /// 앱 언어를 바꿨을 때 떠 있는 이름표·말풍선을 새 언어로
+    func relocalize() {
+        pets.forEach { $0.relocalize() }
+    }
+
     func acknowledgeAll() {
         link?.acknowledgeAll()
         pollIn = 0

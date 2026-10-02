@@ -81,6 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     private var menuBarPet: MenuBarPet?
     private var menuBarPetItem: NSMenuItem!
     private var sourceItems: [NSMenuItem] = []
+    private var languageItems: [NSMenuItem] = []
 
     init(preview: Bool) {
         previewMode = preview
@@ -433,7 +434,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = runnerImages[0]
         item.button?.toolTip = "Clawd Pet"
+        item.menu = makeMenu()
+        statusItem = item
+    }
 
+    /// 메뉴 막대 메뉴. 언어를 바꾸면 새로 만든다.
+    private func makeMenu() -> NSMenu {
         let menu = NSMenu()
         menu.delegate = self
         menu.autoenablesItems = false
@@ -475,12 +481,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         menu.addItem(.separator())
         connectItem = menu.addItem(withTitle: tr("Claude Code 연결", "Connect Claude Code"), action: #selector(toggleConnect), keyEquivalent: "")
         loginItem = menu.addItem(withTitle: tr("로그인할 때 자동 실행", "Open at login"), action: #selector(toggleLogin), keyEquivalent: "")
+        // 어느 언어로 보고 있든 찾을 수 있게 두 언어로 쓴다
+        let languageMenu = NSMenu()
+        languageItems = L10n.Choice.allCases.map { choice in
+            let title: String
+            switch choice {
+            case .auto: title = tr("자동 (Mac 언어 따라)", "Auto (match Mac)")
+            case .english: title = "English"
+            case .korean: title = "한국어"
+            }
+            let option = languageMenu.addItem(withTitle: title, action: #selector(chooseLanguage(_:)), keyEquivalent: "")
+            option.representedObject = choice.rawValue
+            option.target = self
+            return option
+        }
+        menu.addItem(withTitle: "언어 · Language", action: nil, keyEquivalent: "").submenu = languageMenu
         menu.addItem(.separator())
         menu.addItem(withTitle: tr("종료", "Quit"), action: #selector(quit), keyEquivalent: "q")
         for menuItem in menu.items where menuItem.action != nil { menuItem.target = self }
+        return menu
+    }
 
-        item.menu = menu
-        statusItem = item
+    @objc private func chooseLanguage(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let choice = L10n.Choice(rawValue: raw) else { return }
+        L10n.choice = choice
+        // 아이디어 하위 메뉴는 계속 쓰니까 옛 메뉴에서 떼어 낸다 (한 메뉴는 한 곳에만 달 수 있다)
+        statusItem?.menu?.items.forEach { if $0.submenu === ideasMenu { $0.submenu = nil } }
+        statusItem?.menu = makeMenu()
+        previewWindow?.title = tr("Clawd Pet 미리보기", "Clawd Pet Preview")
+        for place in [world, menuBarPet?.world] + petWindows.map(\.world) { place?.relocalize() }
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -507,6 +536,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         }
         for choice in sourceItems {
             choice.state = choice.representedObject as? String == runnerSource.rawValue ? .on : .off
+        }
+        for option in languageItems {
+            option.state = option.representedObject as? String == L10n.choice.rawValue ? .on : .off
         }
         showItem.state = isShowing || previewMode ? .on : .off
         showItem.isEnabled = !desktopMode

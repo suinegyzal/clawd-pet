@@ -465,35 +465,55 @@ final class Clawd {
         look = 0
         let forever = 1e9...1e9
 
+        (label, speech) = Self.captions(for: job)
         switch job {
-        case .working(let work, let detail):
-            let suffix = detail.isEmpty ? "" : " · " + detail
+        case .working(let work, _):
             switch work {
-            case .think:
-                begin(.think, for: forever)
-                label = tr("생각 중", "Thinking") + (detail.isEmpty ? "…" : suffix)
-            case .study:
-                begin(.study, for: forever)
-                label = tr("공부 중", "Studying") + suffix
+            case .think: begin(.think, for: forever)
+            case .study: begin(.study, for: forever)
             case .exercise:
                 begin(.exercise, for: forever)
-                label = tr("운동 중", "Working out") + suffix
                 sweatIn = 0.5
-            case .craft:
-                begin(.craft, for: forever)
-                label = tr("작업 중", "Working") + suffix
+            case .craft: begin(.craft, for: forever)
             }
-        case .waiting(let message):
+        case .waiting:
             begin(.call, for: forever)
-            speech = Speech(title: tr("잠깐!", "Wait!"), text: message)
             exclaim("!", in: world)
-        case .done(let summary):
+        case .done:
             begin(.announce, for: forever)
-            speech = Speech(title: tr("완료!", "Done!"), text: summary)
             happyFor = 2
             if !isAirborne { vy = world.jumpVelocity(0.9) }
             heart(in: world)
         }
+    }
+
+    /// 맡은 일의 이름표("공부 중 · 주제")와 말풍선("완료!")
+    private static func captions(for job: ClaudeLink.Status) -> (label: String?, speech: Speech?) {
+        switch job {
+        case .working(let work, let detail):
+            let suffix = detail.isEmpty ? "" : " · " + detail
+            switch work {
+            case .think: return (tr("생각 중", "Thinking") + (detail.isEmpty ? "…" : suffix), nil)
+            case .study: return (tr("공부 중", "Studying") + suffix, nil)
+            case .exercise: return (tr("운동 중", "Working out") + suffix, nil)
+            case .craft: return (tr("작업 중", "Working") + suffix, nil)
+            }
+        case .waiting(let message): return (nil, Speech(title: tr("잠깐!", "Wait!"), text: message))
+        case .done(let summary): return (nil, Speech(title: tr("완료!", "Done!"), text: summary))
+        }
+    }
+
+    /// 앱 언어를 바꾸면 지금 떠 있는 이름표·말풍선도 새 언어로
+    func relocalize() {
+        if activity == .idea, let idea = pitchedIdea {
+            speech = Self.ideaSpeech(idea)
+        } else if let job, activity.isJob {
+            (label, speech) = Self.captions(for: job)
+        }
+    }
+
+    private static func ideaSpeech(_ idea: IdeaBox.Idea) -> Speech {
+        Speech(title: tr("💡 아이디어!", "💡 Idea!"), text: idea.topic + " · " + idea.title)
     }
 
     // MARK: - 간식
@@ -678,7 +698,7 @@ final class Clawd {
     func pitch(_ idea: IdeaBox.Idea, in world: Playground) {
         pitchedIdea = idea
         target = nil
-        speech = Speech(title: tr("💡 아이디어!", "💡 Idea!"), text: idea.topic + " · " + idea.title)
+        speech = Self.ideaSpeech(idea)
         begin(.idea, for: 45...45)
         attentionIn = 6
         look = 0

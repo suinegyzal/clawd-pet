@@ -25,7 +25,7 @@ When Claude rests, Clawd plays. When Claude works, Clawd works too.
   </tr>
 </table>
 
-<sub>Filmed on a Korean Mac, so the bubbles are in Korean. On an English Mac, Clawd speaks English.</sub>
+<sub>Filmed on a Korean Mac, so the bubbles are in Korean. On an English Mac, Clawd speaks English, and you can switch anytime from the menu (**언어 · Language**).</sub>
 
 > **Unofficial fan project.** Made for fun, not affiliated with Anthropic. Claude and Clawd are Anthropic's trademarks and character. Non-commercial.
 
@@ -127,7 +127,8 @@ If Xcode Command Line Tools aren't installed, an installer pops up. Click **Inst
 Click the running Clawd icon in the menu bar to:
 - see Claude's status and your Mac's stats (CPU, GPU, memory, storage, battery, network)
 - mark done notices read, browse 💡 ideas, drop a treat, add or send home a Clawd
-- choose what makes Clawd run (CPU, memory or GPU), toggle the menu bar Clawds and Touch Bar options, connect or disconnect Claude Code, open at login, quit
+- choose what makes Clawd run (CPU, memory or GPU), toggle the menu bar Clawds and Touch Bar options, connect or disconnect Claude Code, open at login
+- switch the language under **언어 · Language**: Auto (match your Mac), English or 한국어. Menus and bubbles change right away, and the choice sticks
 
 ---
 
@@ -172,7 +173,7 @@ git tag v1.0.1 && git push origin v1.0.1                               # GitHub 
 ```
 
 - No Xcode project, just `swiftc` (Command Line Tools) and plain Swift + AppKit in `Sources/`.
-- The UI follows your Mac's language (English or Korean). Force one with `CLAWD_LANG=en` or `CLAWD_LANG=ko`.
+- The UI follows your Mac's language (English or Korean) unless you pick one under **언어 · Language** in the menu. `CLAWD_LANG=en` or `CLAWD_LANG=ko` forces one at launch, for screenshots.
 - Clawd uses private macOS APIs (`DFRFoundation`, `DisplayServices`) to stay in the Touch Bar while other apps are in front, and to set built-in display brightness, like MTMR, Pock and MonitorControl do. That's fine for personal use, but it can't go on the App Store.
 - The hooks do nothing when the app isn't running, and never block Claude Code.
 

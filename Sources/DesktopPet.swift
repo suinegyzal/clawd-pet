@@ -13,10 +13,10 @@ struct PetRecord: Codable {
     var patsToday = 0
     var patsDay = ""
 
-    static let levels: [(need: Int, title: String)] = tr(
+    static var levels: [(need: Int, title: String)] { tr(
         [(0, "낯가림"), (30, "아는 사이"), (100, "친구"), (300, "단짝"), (800, "가족"), (2000, "영혼의 단짝")],
         [(0, "Shy"), (30, "Acquaintance"), (100, "Friend"), (300, "Best friend"), (800, "Family"), (2000, "Soulmate")]
-    )
+    ) }
     var level: Int { Self.levels.lastIndex { affection >= $0.need } ?? 0 }
     var levelTitle: String { Self.levels[level].title }
     var nextNeed: Int? { level + 1 < Self.levels.count ? Self.levels[level + 1].need : nil }

@@ -106,7 +106,9 @@ git clone https://github.com/suinegyzal/clawd-pet.git ~/Documents/ClawdPet && cd
 Clawd 아이콘을 누르면 나오는 메뉴에서:
 - Claude 상태, Mac 상태(CPU·GPU·메모리·저장 공간·배터리·네트워크)를 한눈에 봅니다.
 - 완료 알림 모두 확인, 💡 아이디어 목록, 간식 주기, Clawd 추가/빼기
-- 달리기 기준(CPU·메모리·GPU), 메뉴 막대에서 돌아다니기, Touch Bar 관련 설정, 종료
+- 달리기 기준(CPU·메모리·GPU), 메뉴 막대에서 돌아다니기, Touch Bar 관련 설정
+- **언어 · Language**: 자동(맥 언어 따라), English, 한국어 중에서 고르면 메뉴와 말풍선이 바로 바뀝니다. 앱을 다시 켜도 기억합니다.
+- 종료
 
 ---
 
