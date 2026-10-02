@@ -7,24 +7,21 @@
 Clawd Pet lets **Clawd**, Claude Code's little pixel mascot, loose on your Mac.
 When Claude rests, Clawd plays. When Claude works, Clawd works too.
 
-```
- ▐▛███▜▌
-▝▜█████▛▘
-  ▘▘ ▝▝
-```
-
 ## ✨ See it on a real MacBook Pro
+
+<p align="center">
+  <img src="docs/en/touchbar-tap.gif" width="100%" alt="Tapping the Done! bubble on a real Touch Bar makes Clawd send a heart"><br>
+  <b>Tap “Done!” on the Touch Bar</b>: Clawd says thanks with a ♥
+</p>
 
 <table>
   <tr>
-    <td width="33%"><img src="docs/en/touchbar-tap.gif" alt="Tapping the Done! bubble on the Touch Bar makes Clawd send a heart"></td>
-    <td width="33%"><img src="docs/en/touchbar-clock.gif" alt="One Clawd holds the clock while two others nap on the Touch Bar"></td>
-    <td width="33%"><img src="docs/en/touchbar-runcat.gif" alt="The Touch Bar dashboard at 100% CPU with Clawd sprinting"></td>
+    <td width="50%"><img src="docs/en/touchbar-clock.gif" alt="One Clawd holds the clock while two others nap on the Touch Bar"></td>
+    <td width="50%"><img src="docs/en/touchbar-runcat.gif" alt="The Touch Bar dashboard at 100% CPU with Clawd sprinting"></td>
   </tr>
   <tr>
-    <td align="center"><b>Tap “Done!”</b><br>Clawd says thanks with a ♥</td>
-    <td align="center"><b>Clock duty</b><br>one holds the time, the rest nap</td>
-    <td align="center"><b>CPU at 100%?</b><br>Clawd sprints, RunCat-style</td>
+    <td align="center"><b>Clock duty</b>: one holds the time, the rest nap</td>
+    <td align="center"><b>CPU at 100%?</b> Clawd sprints, RunCat-style</td>
   </tr>
 </table>
 
