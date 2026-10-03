@@ -229,3 +229,7 @@ build/ClawdPet.app/Contents/MacOS/ClawdPet --snapshot out.png  # 여러 장면�
 - 앱이 앞에 있지 않아도 Touch Bar를 쓰기 위해, 그리고 내장 화면 밝기를 조절하기 위해 macOS 비공개 API(`DFRFoundation`, `DisplayServices`)를 씁니다. MTMR, Pock, MonitorControl 같은 앱들과 같은 방식이라 개인용으로는 문제없지만 App Store에는 올릴 수 없습니다.
 - 훅은 앱이 꺼져 있으면 아무것도 하지 않고, Claude Code의 동작을 막지 않습니다.
 - Clawd와 Claude는 Anthropic의 캐릭터·상표입니다. 이 앱은 개인 프로젝트이며 Anthropic과 관련이 없습니다.
+
+## 라이선스
+
+코드는 [MIT 라이선스](LICENSE)로 자유롭게 쓸 수 있습니다. 단, Clawd 캐릭터(이름·생김새·픽셀 그림)와 Claude 이름·로고는 Anthropic의 것이라 이 라이선스에 포함되지 않습니다.
