@@ -232,4 +232,4 @@ build/ClawdPet.app/Contents/MacOS/ClawdPet --snapshot out.png  # 여러 장면�
 
 ## 라이선스
 
-코드는 [MIT 라이선스](LICENSE)로 자유롭게 쓸 수 있습니다. 단, Clawd 캐릭터(이름·생김새·픽셀 그림)와 Claude 이름·로고는 Anthropic의 것이라 이 라이선스에 포함되지 않습니다.
+코드는 [MIT 라이선스](LICENSE)로 자유롭게 쓸 수 있습니다. 단, [NOTICE](NOTICE)에 적은 대로 Clawd 캐릭터(이름·생김새·픽셀 그림)와 Claude 이름·로고는 Anthropic의 것이라 이 라이선스에 포함되지 않습니다.

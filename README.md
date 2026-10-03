@@ -181,7 +181,7 @@ git tag v1.0.1 && git push origin v1.0.1                               # GitHub 
 
 ## License
 
-The code is under the [MIT License](LICENSE). The Clawd character (its name, look and pixel art) and the Claude name and logo belong to Anthropic and aren't covered by it.
+The code is under the [MIT License](LICENSE). As noted in [NOTICE](NOTICE), the Clawd character (its name, look and pixel art) and the Claude name and logo belong to Anthropic and aren't covered by it.
 
 ---
 
