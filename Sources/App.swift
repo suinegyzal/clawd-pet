@@ -12,6 +12,14 @@ enum Main {
             DocsArt.write(to: args[i + 1])
             return
         }
+        if let i = args.firstIndex(of: "--render-gifs"), i + 1 < args.count {
+            DocsGif.write(to: args[i + 1])
+            return
+        }
+        if let i = args.firstIndex(of: "--render-reddit"), i + 1 < args.count {
+            DocsGif.write(to: args[i + 1], square: true)
+            return
+        }
         let app = NSApplication.shared
         if args.contains("--desktop") { UserDefaults.standard.set(true, forKey: "desktopMode") }
         let delegate = AppDelegate(preview: args.contains("--preview"))

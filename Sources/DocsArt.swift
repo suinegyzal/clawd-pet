@@ -5,17 +5,17 @@ import AppKit
 enum DocsArt {
     // MARK: - 색과 글꼴
 
-    private static let space = CGColorSpace(name: CGColorSpace.sRGB)!
-    private static func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
+    static let space = CGColorSpace(name: CGColorSpace.sRGB)!
+    static func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
         CGColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: a)
     }
-    private static let peach = rgb(255, 226, 210), lavender = rgb(232, 224, 255), mint = rgb(214, 243, 230)
-    private static let sky = rgb(214, 232, 255), butter = rgb(255, 241, 199), blush = rgb(255, 214, 224)
-    private static let ink = NSColor(srgbRed: 0.24, green: 0.17, blue: 0.15, alpha: 1)
-    private static let soft = NSColor(srgbRed: 0.47, green: 0.39, blue: 0.36, alpha: 1)
-    private static let orange = NSColor(cgColor: Palette.clawd)!
+    static let peach = rgb(255, 226, 210), lavender = rgb(232, 224, 255), mint = rgb(214, 243, 230)
+    static let sky = rgb(214, 232, 255), butter = rgb(255, 241, 199), blush = rgb(255, 214, 224)
+    static let ink = NSColor(srgbRed: 0.24, green: 0.17, blue: 0.15, alpha: 1)
+    static let soft = NSColor(srgbRed: 0.47, green: 0.39, blue: 0.36, alpha: 1)
+    static let orange = NSColor(cgColor: Palette.clawd)!
 
-    private static func rounded(_ size: CGFloat, _ weight: NSFont.Weight) -> NSFont {
+    static func rounded(_ size: CGFloat, _ weight: NSFont.Weight) -> NSFont {
         let base = NSFont.systemFont(ofSize: size, weight: weight)
         return NSFont(descriptor: base.fontDescriptor.withDesign(.rounded) ?? base.fontDescriptor, size: size) ?? base
     }
@@ -39,8 +39,7 @@ enum DocsArt {
     // MARK: - 그리기 도구
 
     /// 포인트 단위로 그리고 2배 해상도로 내보낸다. 좌표는 왼쪽 아래가 원점.
-    private static func canvas(_ size: CGSize, _ draw: (CGContext) -> Void) -> CGImage {
-        let scale: CGFloat = 2
+    static func canvas(_ size: CGSize, scale: CGFloat = 2, _ draw: (CGContext) -> Void) -> CGImage {
         let ctx = CGContext(data: nil, width: Int(size.width * scale), height: Int(size.height * scale), bitsPerComponent: 8,
                             bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
         ctx.scaleBy(x: scale, y: scale)
@@ -51,7 +50,7 @@ enum DocsArt {
     }
 
     /// 매번 같은 그림이 나오게 하는 작은 난수
-    private struct Seeded {
+    struct Seeded {
         var state: UInt64
         mutating func next() -> CGFloat {
             state = state &* 6364136223846793005 &+ 1442695040888963407
@@ -59,7 +58,7 @@ enum DocsArt {
         }
     }
 
-    private static func background(_ ctx: CGContext, _ size: CGSize, _ colors: [CGColor], seed: UInt64, avoid: [CGRect] = []) {
+    static func background(_ ctx: CGContext, _ size: CGSize, _ colors: [CGColor], seed: UInt64, avoid: [CGRect] = []) {
         let gradient = CGGradient(colorsSpace: space, colors: colors as CFArray, locations: nil)!
         ctx.drawLinearGradient(gradient, start: CGPoint(x: 0, y: size.height), end: CGPoint(x: size.width, y: 0), options: [])
         var random = Seeded(state: seed)
@@ -72,13 +71,13 @@ enum DocsArt {
     }
 
     /// 픽셀 반짝이 ✦
-    private static func sparkle(_ ctx: CGContext, at center: CGPoint, unit: CGFloat, color: CGColor) {
+    static func sparkle(_ ctx: CGContext, at center: CGPoint, unit: CGFloat, color: CGColor) {
         let cells = [(2, 0), (2, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (2, 3), (2, 4)]
         ctx.setFillColor(color)
         ctx.fill(cells.map { CGRect(x: center.x + CGFloat($0.0 - 2) * unit, y: center.y + CGFloat($0.1 - 2) * unit, width: unit, height: unit) })
     }
 
-    private static func card(_ ctx: CGContext, _ rect: CGRect, fill: CGColor = CGColor(gray: 1, alpha: 0.92), radius: CGFloat = 26) {
+    static func card(_ ctx: CGContext, _ rect: CGRect, fill: CGColor = CGColor(gray: 1, alpha: 0.92), radius: CGFloat = 26) {
         ctx.saveGState()
         ctx.setShadow(offset: CGSize(width: 0, height: -6), blur: 22, color: rgb(120, 80, 60, 0.18))
         ctx.addPath(CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil))
@@ -87,7 +86,7 @@ enum DocsArt {
         ctx.restoreGState()
     }
 
-    private static func text(_ string: String, _ font: NSFont, _ color: NSColor, in rect: CGRect, align: NSTextAlignment = .left) {
+    static func text(_ string: String, _ font: NSFont, _ color: NSColor, in rect: CGRect, align: NSTextAlignment = .left) {
         let style = NSMutableParagraphStyle()
         style.alignment = align
         style.lineSpacing = font.pointSize * 0.15
@@ -96,13 +95,13 @@ enum DocsArt {
     }
 
     /// 제목 + 한 줄 설명 (카드 위쪽)
-    private static func heading(_ title: String, _ subtitle: String, in size: CGSize) {
+    static func heading(_ title: String, _ subtitle: String, in size: CGSize) {
         text(title, rounded(40, .heavy), ink, in: CGRect(x: 60, y: size.height - 92, width: size.width - 120, height: 54))
         text(subtitle, rounded(20, .medium), soft, in: CGRect(x: 60, y: size.height - 128, width: size.width - 120, height: 30))
     }
 
     /// 알약 모양 이름표
-    private static func pill(_ string: String, at origin: CGPoint, fill: CGColor) -> CGFloat {
+    static func pill(_ string: String, at origin: CGPoint, fill: CGColor) -> CGFloat {
         let font = rounded(17, .bold)
         let width = NSAttributedString(string: string, attributes: [.font: font]).size().width + 28
         let ctx = NSGraphicsContext.current!.cgContext
@@ -115,7 +114,7 @@ enum DocsArt {
 
     // MARK: - Clawd 세계 꾸미기
 
-    private static func makeWorld(width: CGFloat, height: CGFloat = 30, px: CGFloat = 2, transparent: Bool = false) -> (Playground, ClaudeLink) {
+    static func makeWorld(width: CGFloat, height: CGFloat = 30, px: CGFloat = 2, transparent: Bool = false) -> (Playground, ClaudeLink) {
         let world = Playground()
         world.width = width
         world.height = height
@@ -126,12 +125,12 @@ enum DocsArt {
         return (world, link)
     }
 
-    private static func run(_ world: Playground, _ seconds: Double) {
+    static func run(_ world: Playground, _ seconds: Double) {
         for _ in 0..<Int(seconds * 60) { world.update(1.0 / 60.0) }
     }
 
     /// 놀고 있는 Clawd 하나를 그 자리에 세워 둔다
-    private static func place(_ world: Playground, at x: CGFloat, facing: CGFloat = 1) -> Clawd {
+    static func place(_ world: Playground, at x: CGFloat, facing: CGFloat = 1) -> Clawd {
         world.addPet(at: x)
         let pet = world.pets[world.pets.count - 1]
         pet.facing = facing
@@ -139,14 +138,14 @@ enum DocsArt {
     }
 
     /// Claude 세션 하나가 일하는 중인 것처럼 꾸민다
-    private static func work(_ link: ClaudeLink, _ id: String, _ prompt: String, tool: String, minutesAgo: Double = 0.3) {
+    static func work(_ link: ClaudeLink, _ id: String, _ prompt: String, tool: String, minutesAgo: Double = 0.3) {
         link.handle(["session_id": id, "hook_event_name": "UserPromptSubmit", "prompt": prompt],
                     at: Date().addingTimeInterval(-minutesAgo * 60))
         link.handle(["session_id": id, "hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": [:]])
     }
 
     /// 세계를 k배로 키워서 (x, y)에 그린다. 투명하지 않으면 Touch Bar처럼 검은 띠가 깔린다.
-    private static func draw(_ world: Playground, in ctx: CGContext, at origin: CGPoint, zoom k: CGFloat, frame: Bool = true) {
+    static func draw(_ world: Playground, in ctx: CGContext, at origin: CGPoint, zoom k: CGFloat, frame: Bool = true) {
         let size = CGSize(width: world.width, height: world.height)
         let rect = CGRect(origin: origin, size: CGSize(width: size.width * k, height: size.height * k))
         if frame && !world.transparent {

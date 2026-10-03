@@ -76,7 +76,7 @@ If Xcode Command Line Tools aren't installed, an installer pops up. Click **Inst
 
 ### When Claude works, Clawd works
 
-![Studying, working out and typing, mirroring Claude Code](docs/en/work.png)
+<p align="center"><img src="docs/en/motion/work.gif" width="440" alt="Claude reads, runs commands and edits code in the terminal while Clawd studies, lifts a dumbbell and types on the Touch Bar, then shows a Done! bubble"></p>
 
 | Claude is… | Clawd… |
 |---|---|
@@ -93,7 +93,7 @@ If Xcode Command Line Tools aren't installed, an installer pops up. Click **Inst
 
 ### Long task? Clawd gets grumpy
 
-![Four moods from focused to furious](docs/en/mood.png)
+<p align="center"><img src="docs/en/motion/grumpy.gif" width="440" alt="A timer races from 0:12 to 12:48 while Clawd goes from focused to sweaty, steaming and red-faced stomping, then cheers when the task is done"></p>
 
 | Time since your request | Clawd |
 |---|---|
@@ -108,11 +108,11 @@ If Xcode Command Line Tools aren't installed, an installer pops up. Click **Inst
 
 ### Playtime
 
-![Clock duty, treats, naps and RunCat-style sprints](docs/en/play.png)
+<p align="center"><img src="docs/en/motion/play.gif" width="440" alt="Three Clawds on the Touch Bar: one holds the clock and goes Ding!, one naps, then they race for a dropped treat and one gets a pat"></p>
 
 ### Menu bar, Touch Bar, or floating
 
-![Clawd in the menu bar and in the Touch Bar](docs/en/places.png)
+<p align="center"><img src="docs/en/motion/menubar.gif" width="440" alt="Clawd works in the macOS menu bar, shows Done! Typo fixed!, and sends a heart when clicked"></p>
 
 - **Menu bar:** the same number of Clawds doing the same things. Clicks pass right through to your menus; only Clawd itself is clickable. Hidden in full-screen apps.
 - **Touch Bar** (MacBook Pro with Touch Bar only): with the Expanded Control Strip setting, Clawd takes the whole bar and adds **brightness −/+ · mute · volume −/+** keys plus a tiny Mac dashboard (CPU·memory / GPU·storage / battery·network).
@@ -169,6 +169,7 @@ cd ~/Documents/ClawdPet && ./uninstall.sh              # remove app + Claude Cod
 build/ClawdPet.app/Contents/MacOS/ClawdPet --preview                   # preview in a normal window
 build/ClawdPet.app/Contents/MacOS/ClawdPet --snapshot out.png          # render test scenes
 CLAWD_LANG=en build/ClawdPet.app/Contents/MacOS/ClawdPet --render-docs docs/en   # regenerate README images
+CLAWD_LANG=en build/ClawdPet.app/Contents/MacOS/ClawdPet --render-reddit docs/en/motion   # regenerate README GIFs
 git tag v1.0.1 && git push origin v1.0.1                               # GitHub Actions builds a universal release
 ```
 
