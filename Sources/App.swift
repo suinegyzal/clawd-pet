@@ -42,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         static let metrics = "showMetrics"
         static let usage = "showUsage"
         static let levelHUD = "levelHUD"
+        static let doneSound = "doneSound"
         static let source = "runnerSource"
         static let menuBarPet = "menuBarPet"
         static let desktop = "desktopMode"
@@ -68,6 +69,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     private let levelHUD = LevelHUD()
     private let levelWatcher = LevelWatcher()
     private var levelHUDItem: NSMenuItem!
+    /// Claude가 일을 마치면 울릴 macOS 소리 ("" = 끄기)
+    private static let doneSounds = ["Glass", "Ping", "Pop", "Purr", "Hero", "Tink", "Submarine"]
+    private var doneSoundItems: [NSMenuItem] = []
+    private var lastDoneSound = Date.distantPast
     private let runner = RunnerClock()
     private lazy var runnerImages = RunnerClock.menuBarImages(px: 1.5)
     private lazy var playground = PlaygroundView(world: world)
@@ -109,7 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     init(preview: Bool) {
         previewMode = preview
         super.init()
-        defaults.register(defaults: [Key.count: 1, Key.big: true, Key.wide: false, Key.controls: true, Key.metrics: true, Key.usage: true, Key.levelHUD: true, Key.menuBarPet: true])
+        defaults.register(defaults: [Key.count: 1, Key.big: true, Key.wide: false, Key.controls: true, Key.metrics: true, Key.usage: true, Key.levelHUD: true, Key.doneSound: "Glass", Key.menuBarPet: true])
     }
 
     private var petCount: Int {
@@ -180,6 +185,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         world.setPetCount(petCount)
         try? FileManager.default.createDirectory(at: ClaudeLink.directory, withIntermediateDirectories: true)
         world.link = ClaudeLink(pendingFile: ClaudeLink.pendingFile)
+        world.link?.onFinish = { [weak self] in self?.playDoneSound() }
         world.ideas = IdeaBox()
         if !previewMode {
             menuBarPet = MenuBarPet(link: world.link, ideas: world.ideas)
@@ -533,6 +539,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         metricsItem = menu.addItem(withTitle: tr("Touch Bar에 Mac 상태 보기", "Mac stats on Touch Bar"), action: #selector(toggleMetrics), keyEquivalent: "")
         menuBarPetItem = menu.addItem(withTitle: tr("메뉴 막대에서 돌아다니기", "Roam the menu bar"), action: #selector(toggleMenuBarPet), keyEquivalent: "")
         menu.addItem(.separator())
+        // Claude가 일을 마치면 소리로 알리기 (고르면 미리 들려준다)
+        let soundMenu = NSMenu()
+        doneSoundItems = ([""] + Self.doneSounds).map { name in
+            let option = soundMenu.addItem(withTitle: name.isEmpty ? tr("끄기", "Off") : name, action: #selector(chooseDoneSound(_:)), keyEquivalent: "")
+            option.representedObject = name
+            option.target = self
+            return option
+        }
+        menu.addItem(withTitle: tr("완료되면 소리로 알리기", "Sound when Claude finishes"), action: nil, keyEquivalent: "").submenu = soundMenu
         connectItem = menu.addItem(withTitle: tr("Claude Code 연결", "Connect Claude Code"), action: #selector(toggleConnect), keyEquivalent: "")
         loginItem = menu.addItem(withTitle: tr("로그인할 때 자동 실행", "Open at login"), action: #selector(toggleLogin), keyEquivalent: "")
         // 어느 언어로 보고 있든 찾을 수 있게 두 언어로 쓴다
@@ -595,6 +610,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         metricsItem.state = showMetrics ? .on : .off
         usageBarItem.state = showUsage ? .on : .off
         levelHUDItem.state = showLevelHUD ? .on : .off
+        let sound = defaults.string(forKey: Key.doneSound) ?? ""
+        for option in doneSoundItems { option.state = option.representedObject as? String == sound ? .on : .off }
         levelHUDItem.isEnabled = !previewMode
         usageBarItem.isEnabled = !previewMode
         menuBarPetItem.state = menuBarPet?.isShowing == true ? .on : .off
@@ -715,6 +732,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     @objc private func toggleMetrics() {
         showMetrics.toggle()
         representIfShowing()
+    }
+
+    // MARK: - 완료 알림 소리
+
+    private func playDoneSound() {
+        guard !previewMode, let name = defaults.string(forKey: Key.doneSound), !name.isEmpty,
+              Date().timeIntervalSince(lastDoneSound) > 1.5 else { return }   // 여러 세션이 한꺼번에 끝나도 한 번만
+        lastDoneSound = Date()
+        NSSound(named: NSSound.Name(name))?.play()
+    }
+
+    @objc private func chooseDoneSound(_ sender: NSMenuItem) {
+        let name = sender.representedObject as? String ?? ""
+        defaults.set(name, forKey: Key.doneSound)
+        if !name.isEmpty { NSSound(named: NSSound.Name(name))?.play() }   // 미리 듣기
     }
 
     @objc private func toggleLevelHUD() {

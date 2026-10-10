@@ -41,7 +41,7 @@ When Claude rests, Clawd plays. When Claude works, Clawd works too.
 
 ## What it does
 
-- **Works along with Claude Code.** When Claude reads files, Clawd reads a book. Running commands means lifting a dumbbell, and editing files means typing on a tiny laptop. When Claude needs permission, Clawd waves "Wait!". When Claude finishes, Clawd holds up a "Done!" bubble until you check it. Long tasks make it sweaty, then red and grumpy.
+- **Works along with Claude Code.** When Claude reads files, Clawd reads a book. Running commands means lifting a dumbbell, and editing files means typing on a tiny laptop. When Claude needs permission, Clawd waves "Wait!". When Claude finishes, Clawd chimes and holds up a "Done!" bubble until you check it. Long tasks make it sweaty, then red and grumpy.
 - **Shows your Claude usage.** Your 5-hour and weekly limits as % gauges, and the last 7 days as a bar per day, in the menu bar menu and on the Touch Bar.
 - **Reacts to volume and brightness.** Change either and Clawd holds the level bar over its head. The louder, the more it suffers. The brighter, the darker its sunglasses. A big Clawd pops up on screen too.
 - **Runs with your Mac's load.** Pick CPU, GPU or memory. The busier your Mac, the faster Clawd runs, and it sweats above 80%. The menu bar icon runs in place to the same beat, just like RunCat.
@@ -99,6 +99,7 @@ If Xcode Command Line Tools aren't installed, an installer pops up. Click **Inst
 | done | hops with `Done! (first sentence of Claude's answer)`. Click it to bring that session's app (Terminal, Claude desktop…) to the front |
 
 - The **topic** is the session title shown in the Claude app's sidebar. If there is none yet, Clawd shows the start of your request.
+- **It chimes when Claude finishes.** Pick the sound (Glass, Ping, Pop, Purr, Hero, Tink, Submarine) or turn it off under **Sound when Claude finishes** in the menu. Picking one plays a preview. Glass by default.
 - **Done notices stay until you check them**, even after a restart. Click Clawd or its bubble (or tap it on the Touch Bar), send that session a new request, or choose **Mark all done notices read**.
 
 ### Long task? Clawd gets grumpy
@@ -174,7 +175,7 @@ Click the running Clawd icon in the menu bar to:
 - see Claude's status and the **Mac | Claude usage** tabs (see [Claude usage](#claude-usage); it remembers your pick)
 - mark done notices read, browse 💡 ideas, drop a treat, add or send home a Clawd
 - choose what makes Clawd run (CPU, memory or GPU), toggle the menu bar Clawds, Touch Bar options (Claude usage, Mac stats, brightness & volume keys) and the on-screen Clawd for volume & brightness
-- connect or disconnect Claude Code, open at login
+- pick the finish sound (or turn it off), connect or disconnect Claude Code, open at login
 - switch the language under **언어 · Language**: Auto (match your Mac), English or 한국어. Menus and bubbles change right away, and the choice sticks
 
 ---

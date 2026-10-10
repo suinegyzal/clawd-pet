@@ -239,9 +239,13 @@ final class ClaudeLink {
         return Self.brief(session.prompt, limit: 24)
     }
 
+    /// 세션 하나가 일을 마쳤을 때 (완료 알림 소리)
+    var onFinish: (() -> Void)?
+
     private func finish(_ session: inout Session, _ summary: String, at date: Date) {
         session.pendingStop = nil
         session.status = .done(summary)
+        onFinish?()
     }
 
     /// 대화 기록에 마지막 답변이 써질 때까지 잠깐 기다렸다가 요약한다.
