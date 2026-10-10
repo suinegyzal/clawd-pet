@@ -3,7 +3,7 @@ import AppKit
 /// 밝기·소리 버튼 옆의 작은 RunCat식 대시보드.
 /// 왼쪽에선 Clawd가 바쁜 만큼 빨리 달리고, 오른쪽 수치는 5초마다 넘어간다. 톡 치면 바로 넘어간다.
 final class MetricsView: NSView {
-    enum Page { case system, gpuDisk, power, claude }
+    enum Page { case system, gpuDisk, power }
 
     static let width: CGFloat = 142
 
@@ -28,9 +28,7 @@ final class MetricsView: NSView {
 
     override var intrinsicContentSize: NSSize { NSSize(width: Self.width, height: 30) }
 
-    private var pages: [Page] {
-        [.system, .gpuDisk, .power] + (stats.claude == nil ? [] : [.claude])
-    }
+    private let pages: [Page] = [.system, .gpuDisk, .power]   // Claude 사용량은 UsageView가 따로 보여 준다
 
     /// 1초마다 불린다
     func tick() {
@@ -60,7 +58,7 @@ enum MetricsRenderer {
     private static let valueFont = NSFont.monospacedDigitSystemFont(ofSize: 9.5, weight: .medium)
     private static let runnerWidth: CGFloat = 28
 
-    private struct Row {
+    struct Row {
         let label: String
         let level: Double?
         let value: String
@@ -70,19 +68,26 @@ enum MetricsRenderer {
 
     static func draw(_ page: MetricsView.Page, stats: SystemStats, runnerFrame: Int, busy: Double,
                      size: CGSize, in ctx: CGContext) {
+        drawPanel(size, in: ctx)
+        drawRunner(frame: runnerFrame, busy: busy, in: ctx)
+        drawRows(rows(page, stats), left: runnerWidth, width: size.width, in: ctx)
+    }
+
+    /// 검은 바탕 위의 어두운 둥근 판
+    static func drawPanel(_ size: CGSize, in ctx: CGContext) {
         ctx.setFillColor(CGColor(gray: 0, alpha: 1))
         ctx.fill(CGRect(origin: .zero, size: size))
         let panel = CGRect(origin: .zero, size: size).insetBy(dx: 0.5, dy: 1)
         ctx.addPath(CGPath(roundedRect: panel, cornerWidth: 6, cornerHeight: 6, transform: nil))
         ctx.setFillColor(CGColor(gray: 0.11, alpha: 1))
         ctx.fillPath()
+    }
 
-        drawRunner(frame: runnerFrame, busy: busy, in: ctx)
-
-        let rows = self.rows(page, stats)
+    /// 두 줄까지: 이름표 · 막대 · 값
+    static func drawRows(_ rows: [Row], left: CGFloat, width: CGFloat, in ctx: CGContext) {
         for (i, row) in rows.prefix(2).enumerated() {
             let y: CGFloat = rows.count == 1 ? 9 : (i == 0 ? 16 : 3)
-            drawRow(row, y: y, left: runnerWidth, width: size.width, in: ctx)
+            drawRow(row, y: y, left: left, width: width, in: ctx)
         }
     }
 
@@ -114,16 +119,6 @@ enum MetricsRenderer {
                 Row(label: "BAT", level: $0.level, value: percent($0.level) + ($0.charging ? "⚡" : ""), lowIsBad: true)
             } ?? Row(label: "BAT", level: nil, value: "AC")
             return [battery, Row(label: "NET", level: nil, value: "↓" + rate(stats.download) + " ↑" + rate(stats.upload))]
-        case .claude:
-            guard let usage = stats.claude else { return [] }
-            var rows: [Row] = []
-            if let limit = usage.fiveHour { rows.append(Row(label: "✻5h", level: limit.used, value: percent(limit.used))) }
-            if let limit = usage.sevenDay { rows.append(Row(label: "✻7d", level: limit.used, value: percent(limit.used))) }
-            if rows.count < 2, let context = usage.context {
-                rows.append(Row(label: "CTX", level: context, value: percent(context)))
-            }
-            if rows.isEmpty { rows.append(Row(label: "✻", level: nil, value: usage.model ?? "Claude")) }
-            return rows
         }
     }
 
@@ -145,7 +140,7 @@ enum MetricsRenderer {
         ctx.fill(CGRect(x: bar.minX, y: bar.minY, width: bar.width * CGFloat(min(1, max(0, level))), height: bar.height))
     }
 
-    private static func percent(_ value: Double) -> String {
+    static func percent(_ value: Double) -> String {
         "\(Int((value * 100).rounded()))%"
     }
 

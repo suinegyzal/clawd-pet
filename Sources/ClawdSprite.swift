@@ -52,6 +52,8 @@ enum ClawdSprite {
         var eyes = Eyes.open
         var look = 0            // -1 왼쪽, 0 정면, 1 오른쪽
         var prop = Prop.none
+        /// 선글라스 짙기 (0 = 안 씀, 1 = 새까맣게). 화면이 밝을수록 짙어진다
+        var shades: CGFloat = 0
     }
 
     private static let body = cells([
@@ -134,6 +136,21 @@ enum ClawdSprite {
         }
         ctx.setFillColor(Palette.eye)
         ctx.fill(eyeRects)
+
+        if frame.shades > 0 {
+            // 눈을 덮는 3×2 알 두 개와 콧등. 짙을수록 불투명하게, 아주 짙으면 반짝이 한 점
+            var lenses: [CGRect] = []
+            for eye in [leftEye, rightEye] {
+                for c in (eye - 1)...(eye + 1) { for r in eyeRow...(eyeRow + 1) { lenses.append(rect(c, r)) } }
+            }
+            for c in (leftEye + 2)...(rightEye - 2) { lenses.append(rect(c, eyeRow)) }
+            ctx.setFillColor(CGColor(gray: 0.06, alpha: 0.3 + 0.7 * min(1, frame.shades)))
+            ctx.fill(lenses)
+            if frame.shades > 0.75 {
+                ctx.setFillColor(CGColor(gray: 1, alpha: 0.9))
+                ctx.fill([rect(leftEye - 1, eyeRow), rect(rightEye - 1, eyeRow)])
+            }
+        }
 
         drawProp(frame.prop, rect: rect, in: ctx)
     }

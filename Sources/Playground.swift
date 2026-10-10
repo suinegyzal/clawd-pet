@@ -59,17 +59,24 @@ final class Playground {
 
     var idleSeconds: TimeInterval { link?.idleSeconds ?? Date().timeIntervalSince(startedAt) }
 
-    /// 밝기·소리를 바꾸면 잠깐 뜨는 레벨 표시
+    /// 밝기·소리를 바꾸면 Clawd 한 마리가 레벨 바를 머리 위로 들어 보인다
     struct Gauge {
         enum Kind { case brightness, volume, muted }
         var kind: Kind
         var level: Float
         var age = 0.0
+        /// 바를 든 Clawd
+        var holder: ObjectIdentifier?
     }
     private(set) var gauge: Gauge?
+    /// 바가 떠 있는 시간
+    static let gaugeLife = 1.8
 
     func showGauge(_ kind: Gauge.Kind, level: Float) {
-        gauge = Gauge(kind: kind, level: level)
+        // 계속 누르는 동안엔 같은 Clawd가 든다. 처음엔 시계 당번 → 쉬는 Clawd → 아무나
+        var holder = gauge?.holder.flatMap { id in pets.first { ObjectIdentifier($0) == id } }
+        holder = holder ?? pets.first { $0.showsClock } ?? pets.first { !$0.hasJob } ?? pets.first
+        gauge = Gauge(kind: kind, level: level, holder: holder.map(ObjectIdentifier.init))
     }
 
     private(set) var pets: [Clawd] = []
@@ -262,7 +269,7 @@ final class Playground {
         for pet in pets { pet.update(dt, in: self) }
 
         gauge?.age += dt
-        if let g = gauge, g.age > 1.6 { gauge = nil }
+        if let g = gauge, g.age > Self.gaugeLife { gauge = nil }
 
         for i in particles.indices {
             particles[i].age += dt

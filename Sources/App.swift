@@ -16,6 +16,10 @@ enum Main {
             DocsGif.write(to: args[i + 1])
             return
         }
+        if let i = args.firstIndex(of: "--render-usage"), i + 1 < args.count {
+            DocsGif.writeUsage(to: args[i + 1])
+            return
+        }
         if let i = args.firstIndex(of: "--render-reddit"), i + 1 < args.count {
             DocsGif.write(to: args[i + 1], square: true)
             return
@@ -36,6 +40,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         static let wide = "wideMode"
         static let controls = "showControls"
         static let metrics = "showMetrics"
+        static let usage = "showUsage"
+        static let levelHUD = "levelHUD"
         static let source = "runnerSource"
         static let menuBarPet = "menuBarPet"
         static let desktop = "desktopMode"
@@ -46,6 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     private static let brightnessID = NSTouchBarItem.Identifier("com.local.ClaudeTouchBar.brightness")
     private static let volumeID = NSTouchBarItem.Identifier("com.local.ClaudeTouchBar.volume")
     private static let metricsID = NSTouchBarItem.Identifier("com.local.ClaudeTouchBar.metrics")
+    private static let usageID = NSTouchBarItem.Identifier("com.local.ClaudeTouchBar.usage")
     private static let controlWidth: CGFloat = 46
     private static let maxPets = 6
 
@@ -54,7 +61,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     private let world = Playground()
     private let stats = SystemStats()
     private lazy var metricsView = MetricsView(stats: stats)
+    private lazy var usageView = UsageView(stats: stats)
     private var statsTimer: Timer?
+    private var statsTicks = 0
+    /// 소리·밝기를 바꾸면 화면에 뜨는 Clawd
+    private let levelHUD = LevelHUD()
+    private let levelWatcher = LevelWatcher()
+    private var levelHUDItem: NSMenuItem!
     private let runner = RunnerClock()
     private lazy var runnerImages = RunnerClock.menuBarImages(px: 1.5)
     private lazy var playground = PlaygroundView(world: world)
@@ -84,7 +97,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     private var wideItem: NSMenuItem!
     private var controlsItem: NSMenuItem!
     private var metricsItem: NSMenuItem!
-    private var statsLines: [NSMenuItem] = []
+    private var usageBarItem: NSMenuItem!
+    /// 메뉴 맨 위의 [Mac 상태 | Claude 사용량] 탭
+    private var usagePanel: UsagePanel?
     private let ideasMenu = NSMenu()
     private var menuBarPet: MenuBarPet?
     private var menuBarPetItem: NSMenuItem!
@@ -94,7 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     init(preview: Bool) {
         previewMode = preview
         super.init()
-        defaults.register(defaults: [Key.count: 1, Key.big: true, Key.wide: false, Key.controls: true, Key.metrics: true, Key.menuBarPet: true])
+        defaults.register(defaults: [Key.count: 1, Key.big: true, Key.wide: false, Key.controls: true, Key.metrics: true, Key.usage: true, Key.levelHUD: true, Key.menuBarPet: true])
     }
 
     private var petCount: Int {
@@ -135,12 +150,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         set { defaults.set(newValue, forKey: Key.metrics) }
     }
     private var hasMetrics: Bool { showMetrics && !previewMode }
+    private var showUsage: Bool {
+        get { defaults.bool(forKey: Key.usage) }
+        set { defaults.set(newValue, forKey: Key.usage) }
+    }
+    private var hasUsage: Bool { showUsage && !previewMode }
+    private var showLevelHUD: Bool {
+        get { defaults.bool(forKey: Key.levelHUD) }
+        set { defaults.set(newValue, forKey: Key.levelHUD) }
+    }
     /// Control Strip을 남겨 둘 때는 앱 영역(실제 폭에 맞춰 줄어듦), 덮을 때는 esc 자리만 빼고 전체.
     /// 옆에 붙는 아이템들 사이에는 8pt씩 간격이 생긴다.
     private var barWidth: CGFloat {
         var width: CGFloat = useWide ? 1004 : 685
         if hasControls { width -= (Self.controlWidth + 8) * 5 }
         if hasMetrics { width -= MetricsView.width + 8 }
+        if hasUsage { width -= UsageView.width + 8 }
         return width - 6
     }
 
@@ -162,6 +187,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
             if defaults.bool(forKey: Key.menuBarPet) { menuBarPet?.show() }
         }
         startStats()
+        // 키보드나 다른 곳에서 소리·밝기를 바꿔도 Clawd가 바를 들어 보인다
+        levelWatcher.onChange = { [weak self] kind, level in self?.levelChanged(kind, level: level) }
+        if !previewMode { levelWatcher.start() }
         playground.preferredWidth = barWidth
         playground.onVisibilityChange = { [weak self] visible in
             guard let self, !self.previewMode else { return }
@@ -306,6 +334,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
             self.metricsView.busy = busy
             self.menuBarPet?.world.busy = busy
             self.metricsView.tick()
+            self.usageView.tick()
+            self.usagePanel?.refresh()
+            self.statsTicks += 1
+            if self.statsTicks % 60 == 5 { UsageLimits.autoCalibrate(self.stats) }   // 상태줄이 공식 %를 주면 기준을 다시 맞춘다
         }
         RunLoop.main.add(timer, forMode: .common)
         statsTimer = timer
@@ -331,6 +363,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         case Self.metricsID:
             let item = NSCustomTouchBarItem(identifier: identifier)
             item.view = metricsView
+            return item
+        case Self.usageID:
+            let item = NSCustomTouchBarItem(identifier: identifier)
+            item.view = usageView
             return item
         case Self.brightnessID:
             return NSGroupTouchBarItem(identifier: identifier, items: [
@@ -376,18 +412,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
 
     private func changeBrightness(_ direction: Float) {
         guard let level = SystemControls.stepBrightness(direction) else { return }
-        world.showGauge(.brightness, level: level)
+        levelChanged(.brightness, level: level)
+    }
+
+    /// 소리·밝기가 바뀌었다: Touch Bar의 Clawd가 바를 들고, 켜 두었으면 화면에도 큰 Clawd가 나온다
+    private func levelChanged(_ kind: Playground.Gauge.Kind, level: Float) {
+        levelWatcher.remember()
+        world.showGauge(kind, level: level)
+        if showLevelHUD && !previewMode { levelHUD.show(kind, level: level) }
     }
 
     private func changeVolume(_ direction: Float) {
         guard let level = SystemControls.stepVolume(direction) else { return }
-        world.showGauge(SystemControls.isMuted ? .muted : .volume, level: level)
+        levelChanged(SystemControls.isMuted ? .muted : .volume, level: level)
         syncMuteButton()
     }
 
     @objc private func toggleMute() {
         let muted = SystemControls.toggleMute()
-        world.showGauge(muted ? .muted : .volume, level: muted ? 0 : SystemControls.volume ?? 0)
+        levelChanged(muted ? .muted : .volume, level: muted ? 0 : SystemControls.volume ?? 0)
         syncMuteButton()
     }
 
@@ -401,7 +444,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
     }
 
     private func showOnTouchBar() {
-        touchBar.defaultItemIdentifiers = [Self.barID] + (hasMetrics ? [Self.metricsID] : [])
+        touchBar.defaultItemIdentifiers = [Self.barID] + (hasUsage ? [Self.usageID] : []) + (hasMetrics ? [Self.metricsID] : [])
             + (hasControls ? [Self.brightnessID, Self.volumeID] : [])
         playground.preferredWidth = barWidth
         TouchBarPrivate.showsCloseBoxWhenFrontmost(true)
@@ -456,12 +499,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         linkItem = menu.addItem(withTitle: "", action: nil, keyEquivalent: "")
         linkItem.isEnabled = false
         menu.addItem(.separator())
-        // RunCat처럼 Mac 상태를 한눈에
-        statsLines = (0..<6).map { _ in
-            let line = menu.addItem(withTitle: "", action: nil, keyEquivalent: "")
-            line.isEnabled = false
-            return line
-        }
+        // Mac 상태와 Claude 사용량은 탭으로 나눠 한 판에
+        let panel = UsagePanel(stats: stats) { [weak self] in self?.showCalibration() }
+        let panelItem = NSMenuItem()
+        panelItem.view = panel
+        menu.addItem(panelItem)
+        usagePanel = panel
+        menu.addItem(.separator())
         let sourceMenu = NSMenu()
         sourceItems = RunnerSource.allCases.map { source in
             let choice = sourceMenu.addItem(withTitle: source.title, action: #selector(chooseSource(_:)), keyEquivalent: "")
@@ -484,6 +528,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         bigItem = menu.addItem(withTitle: tr("크게 보기", "Bigger Clawds"), action: #selector(toggleBig), keyEquivalent: "")
         wideItem = menu.addItem(withTitle: tr("넓게 쓰기 (Control Strip 가리기)", "Full width (cover Control Strip)"), action: #selector(toggleWide), keyEquivalent: "")
         controlsItem = menu.addItem(withTitle: tr("밝기·소리 버튼", "Brightness & volume buttons"), action: #selector(toggleControls), keyEquivalent: "")
+        usageBarItem = menu.addItem(withTitle: tr("Touch Bar에 Claude 사용량 보기", "Claude usage on Touch Bar"), action: #selector(toggleUsageBar), keyEquivalent: "")
+        levelHUDItem = menu.addItem(withTitle: tr("소리·밝기 바꿀 때 화면에도 Clawd 보이기", "Show Clawd on screen for volume & brightness"), action: #selector(toggleLevelHUD), keyEquivalent: "")
         metricsItem = menu.addItem(withTitle: tr("Touch Bar에 Mac 상태 보기", "Mac stats on Touch Bar"), action: #selector(toggleMetrics), keyEquivalent: "")
         menuBarPetItem = menu.addItem(withTitle: tr("메뉴 막대에서 돌아다니기", "Roam the menu bar"), action: #selector(toggleMenuBarPet), keyEquivalent: "")
         menu.addItem(.separator())
@@ -525,23 +571,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         rebuildIdeasMenu()
         countItem.title = "Clawd × \(desktopMode ? petWindows.count : world.pets.count)"
         linkItem.title = world.link?.summaryLine ?? ""
-        func percent(_ value: Double) -> Int { Int((value * 100).rounded()) }
-        var lines = [
-            "CPU \(percent(stats.cpu))% · GPU \(percent(stats.gpu))%",
-            String(format: tr("메모리 %.1fGB 사용 (%d%%)", "Memory %.1f GB used (%d%%)"), stats.memoryUsedGB, percent(stats.memory)),
-            String(format: tr("저장 공간 %.0fGB 남음 (%d%% 사용)", "Storage %.0f GB free (%d%% used)"), stats.diskFreeGB, percent(stats.disk)),
-            stats.battery.map { tr("배터리", "Battery") + " \(percent($0.level))%" + ($0.charging ? tr(" (충전 중)", " (charging)") : "") } ?? tr("전원 어댑터 사용 중", "On power adapter"),
-            tr("네트워크", "Network") + " ↓\(MetricsRenderer.rate(stats.download))/s ↑\(MetricsRenderer.rate(stats.upload))/s",
-        ]
-        if let usage = stats.claude {
-            let parts = [usage.fiveHour.map { tr("5시간", "5h") + " \(percent($0.used))%" }, usage.sevenDay.map { tr("7일", "7d") + " \(percent($0.used))%" },
-                         usage.context.map { tr("컨텍스트", "Context") + " \(percent($0))%" }].compactMap { $0 }
-            lines.append(tr("Claude 사용량 ", "Claude usage ") + (parts.isEmpty ? (usage.model ?? "") : parts.joined(separator: " · ")))
-        }
-        for (i, line) in statsLines.enumerated() {
-            line.title = i < lines.count ? lines[i] : ""
-            line.isHidden = i >= lines.count
-        }
+        stats.tokens.refresh { [weak self] in self?.usagePanel?.refresh() }   // 새로 쌓인 기록까지
+        usagePanel?.refresh()
         for choice in sourceItems {
             choice.state = choice.representedObject as? String == runnerSource.rawValue ? .on : .off
         }
@@ -562,12 +593,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
         controlsItem.state = showControls ? .on : .off
         controlsItem.isEnabled = useWide && !previewMode
         metricsItem.state = showMetrics ? .on : .off
+        usageBarItem.state = showUsage ? .on : .off
+        levelHUDItem.state = showLevelHUD ? .on : .off
+        levelHUDItem.isEnabled = !previewMode
+        usageBarItem.isEnabled = !previewMode
         menuBarPetItem.state = menuBarPet?.isShowing == true ? .on : .off
         menuBarPetItem.isEnabled = menuBarPet != nil
         metricsItem.isEnabled = !previewMode
         connectItem.title = ClaudeSetup.isConnected ? tr("Claude Code 연결 끊기", "Disconnect Claude Code") : tr("Claude Code 연결", "Connect Claude Code")
         loginItem.state = ClaudeSetup.launchesAtLogin ? .on : .off
         loginItem.isEnabled = ClaudeSetup.canAutoLaunch
+    }
+
+    // MARK: - 한도 맞추기
+
+    private func showCalibration() {
+        CalibrationDialog.run(stats: stats)
     }
 
     /// 💡 아이디어 메뉴: 최근 아이디어(● = 아직 안 봄), 하나 던지기, 보고서 폴더
@@ -673,6 +714,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSTouchBarDelegate, NS
 
     @objc private func toggleMetrics() {
         showMetrics.toggle()
+        representIfShowing()
+    }
+
+    @objc private func toggleLevelHUD() {
+        showLevelHUD.toggle()
+        // 켜자마자 어떻게 보이는지 한 번 보여 준다
+        if showLevelHUD, let volume = SystemControls.volume { levelHUD.show(SystemControls.isMuted ? .muted : .volume, level: SystemControls.isMuted ? 0 : volume) }
+    }
+
+    @objc private func toggleUsageBar() {
+        showUsage.toggle()
         representIfShowing()
     }
 

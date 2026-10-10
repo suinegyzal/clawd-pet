@@ -439,3 +439,238 @@ enum DocsGif {
 private extension CGColor {
     var nsColor: NSColor { NSColor(cgColor: self) ?? .white }
 }
+
+// MARK: - 사용량·소리·밝기 소개 그림 (`--render-usage dir`)
+
+extension DocsGif {
+    /// 메뉴의 사용량 탭, Touch Bar 사용량, 바를 든 Clawd, 한도 맞추기 창. 숫자는 예시(내 기록이 아님)
+    static func writeUsage(to path: String) {
+        square = false
+        _ = NSApplication.shared   // 대화상자를 그리려면 필요
+        let folder = URL(fileURLWithPath: path)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let stats = demoStats()
+        func png(_ image: CGImage, _ name: String) {
+            let url = folder.appendingPathComponent(name)
+            try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?.write(to: url)
+            print("docs → \(url.path)")
+        }
+        png(usageMenu(stats), "usage-menu.png")
+        save(usageTouchBar(stats), to: folder.appendingPathComponent("usage-touchbar.gif"))
+        print("gif → \(folder.appendingPathComponent("usage-touchbar.gif").path)")
+        save(levels(), to: folder.appendingPathComponent("levels.gif"))
+        print("gif → \(folder.appendingPathComponent("levels.gif").path)")
+        png(calibrationDialog(), "calibrate.png")
+        UsageCalibration.override = nil
+    }
+
+    /// 예시 숫자: 5시간 42%, 주간 58%(목요일 오전 9시 초기화), 최근 7일 하루씩
+    private static func demoStats() -> SystemStats {
+        let stats = SystemStats()
+        stats.sample()
+        Thread.sleep(forTimeInterval: 0.5)
+        stats.sample()
+        let now = Date(), calendar = Calendar.current
+        let today = calendar.startOfDay(for: now)
+        func tally(_ tokens: Double) -> TokenUsage.Tally {
+            var t = TokenUsage.Tally(output: Int(tokens * 0.004), cacheWrite: Int(tokens * 0.02), cacheRead: Int(tokens * 0.976),
+                                     messages: Int(tokens / 400_000))
+            t.weighted = Double(t.output) * 5 + Double(t.cacheWrite) * 2 + Double(t.cacheRead) * 0.1
+            return t
+        }
+        var snapshot = TokenUsage.Snapshot()
+        for (i, tokens) in [182e6, 241e6, 96e6, 58e6, 12e6, 133e6, 71e6].enumerated() {
+            let day = calendar.date(byAdding: .day, value: i - 6, to: today) ?? today
+            let t = tally(tokens)
+            snapshot.days.append((day: day, tally: t))
+            snapshot.week += t
+            snapshot.timeline.append((date: day.addingTimeInterval(3600), weighted: t.weighted))
+            if i == 6 { snapshot.today = t }
+        }
+        let start = calendar.dateInterval(of: .hour, for: now.addingTimeInterval(-5400))?.start ?? now
+        let block = tally(21.7e6)
+        snapshot.block = (block, start, start.addingTimeInterval(TokenUsage.window))
+        snapshot.models = [(name: "claude-opus-5-5", tally: snapshot.week)]
+        stats.tokens.preview(snapshot)
+
+        let reset = calendar.nextDate(after: now, matching: DateComponents(hour: 9, minute: 0, weekday: 5), matchingPolicy: .nextTime) ?? now
+        var calibration = UsageCalibration()
+        calibration.weeklyReset = reset
+        calibration.weeklyLimit = snapshot.weighted(since: UsageLimits.weekWindow(anchor: reset).start) / 0.58
+        calibration.fiveHourLimit = block.weighted / 0.42
+        calibration.updated = now
+        UsageCalibration.override = calibration
+        return stats
+    }
+
+    /// 메뉴 판: [Claude 사용량] 탭과 [Mac 상태] 탭을 나란히
+    private static func usageMenu(_ stats: SystemStats) -> CGImage {
+        let size = CGSize(width: 720, height: 400)
+        let bg = Art.rgb(255, 226, 210), shade = Art.rgb(240, 196, 176)
+        let shots: [CGImage] = [1, 0].compactMap { tab in
+            let panel = UsagePanel(stats: stats, tab: tab) {}
+            panel.appearance = NSAppearance(named: .aqua)
+            guard let rep = panel.bitmapImageRepForCachingDisplay(in: panel.bounds) else { return nil }
+            panel.cacheDisplay(in: panel.bounds, to: rep)
+            return rep.cgImage
+        }
+        return Art.canvas(size) { ctx in
+            flat(ctx, size, bg, seed: 17, avoid: [CGRect(x: 20, y: 20, width: size.width - 40, height: size.height - 30)])
+            title([tr("메뉴 막대에서 한눈에", "Everything at a glance in your menu bar")], in: size)
+            Art.text(tr("[Claude 사용량 | Mac 상태] 탭으로 넘겨 보고, 고른 탭은 기억해요", "Flip between the Claude usage and Mac tabs. It remembers your pick"),
+                     Art.rounded(15, .semibold), Art.soft, in: CGRect(x: 28, y: size.height - 82, width: size.width - 56, height: 22))
+            for (i, shot) in shots.enumerated() {
+                let card = CGRect(x: 28 + CGFloat(i) * 344, y: 30, width: 320, height: 272)
+                sticker(ctx, card, fill: Art.rgb(246, 244, 243), shadow: shade, radius: 14)
+                ctx.draw(shot, in: CGRect(x: card.minX + 10, y: card.minY + 10, width: 300, height: 252))
+            }
+        }
+    }
+
+    /// Touch Bar: Clawd들 옆 사용량 칸이 5시간 → 주간 → 최근 7일로 넘어간다
+    private static func usageTouchBar(_ stats: SystemStats) -> [CGImage] {
+        let size = CGSize(width: 720, height: 220)
+        let bg = Art.rgb(232, 224, 255), shade = Art.rgb(200, 186, 240)
+        let (world, _) = Art.makeWorld(width: 120)
+        _ = Art.place(world, at: 30)
+        let napper = Art.place(world, at: 96, facing: -1)
+        Art.run(world, 1.2)
+        napper.start(.sleep, seconds: 1e9)   // 시계 당번과 겹치지 않게 한 마리는 낮잠
+        let usage = UsageView(stats: stats)
+        usage.frame = NSRect(x: 0, y: 0, width: UsageView.width, height: 30)
+        let names = [tr("5시간 한도", "5-hour limit"), tr("주간 한도", "Weekly limit"), tr("최근 7일", "Last 7 days")]
+        var page = 0
+        let k: CGFloat = 2
+        let origin = CGPoint(x: 28, y: 92)
+        return film(seconds: 7.5, size: size, worlds: [world], cues: [
+            (2.5, { usage.nextPage(); page = 1 }),
+            (5.0, { usage.nextPage(); page = 2 }),
+        ]) { ctx, t in
+            flat(ctx, size, bg, seed: 23, avoid: [CGRect(x: 20, y: 20, width: size.width - 40, height: size.height - 30)])
+            title([tr("Touch Bar에서도 Claude 사용량", "Claude usage, right on your Touch Bar")], in: size)
+            // Touch Bar 띠: 놀이터 · 사용량 · 밝기 · 소리
+            let strip = CGRect(x: origin.x - 8, y: origin.y - 8, width: size.width - 2 * (origin.x - 8), height: 30 * k + 16)
+            ctx.addPath(CGPath(roundedRect: strip, cornerWidth: 14, cornerHeight: 14, transform: nil))
+            ctx.setFillColor(CGColor(gray: 0, alpha: 1))
+            ctx.fillPath()
+            Art.draw(world, in: ctx, at: origin, zoom: k, frame: false)
+            ctx.saveGState()
+            ctx.translateBy(x: origin.x + (120 + 8) * k, y: origin.y)
+            ctx.scaleBy(x: k, y: k)
+            usage.draw(usage.bounds)
+            ctx.restoreGState()
+            drawButtons(["sun.max.fill", "speaker.wave.2.fill"], from: origin.x + (120 + 8 + 112 + 8) * k, y: origin.y, zoom: k, in: ctx)
+            // 지금 보이는 화면
+            var x: CGFloat = 28
+            for (i, name) in names.enumerated() {
+                x += Art.pill(name, at: CGPoint(x: x, y: 28), fill: i == page ? CGColor(gray: 1, alpha: 1) : shade) + 10
+            }
+        }
+    }
+
+    /// Touch Bar 버튼 (어두운 칸 + 흰 SF Symbol). pressed는 눌린 버튼 번호
+    private static func drawButtons(_ symbols: [String], from left: CGFloat, y: CGFloat, zoom k: CGFloat, pressed: Int? = nil, in ctx: CGContext) {
+        for (i, name) in symbols.enumerated() {
+            let button = CGRect(x: left + CGFloat(i) * 44 * k, y: y, width: 40 * k, height: 30 * k)
+            ctx.addPath(CGPath(roundedRect: button, cornerWidth: 6 * k, cornerHeight: 6 * k, transform: nil))
+            ctx.setFillColor(i == pressed ? CGColor(gray: 0.55, alpha: 1) : CGColor(gray: 0.27, alpha: 1))
+            ctx.fillPath()
+            let config = NSImage.SymbolConfiguration(pointSize: 11 * k, weight: .semibold).applying(.init(paletteColors: [.white]))
+            if let image = NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(config) {
+                image.draw(in: CGRect(x: button.midX - image.size.width / 2, y: button.midY - image.size.height / 2,
+                                      width: image.size.width, height: image.size.height))
+            }
+        }
+    }
+
+    /// 소리를 올리고 → 끄고 → 밝기를 올린다. 위는 Touch Bar, 아래는 화면에 뜨는 큰 Clawd
+    private static func levels() -> [CGImage] {
+        let size = CGSize(width: 720, height: 400)
+        let bg = Art.rgb(214, 243, 230), shade = Art.rgb(170, 220, 196)
+        let (bar, _) = Art.makeWorld(width: 210)
+        let holder = Art.place(bar, at: 60)
+        _ = Art.place(bar, at: 170, facing: -1)
+        Art.run(bar, 1.2)
+        holder.start(.idle, seconds: 1e9)
+        let hud = Playground()
+        hud.transparent = true
+        hud.px = 4
+        hud.width = 170
+        hud.height = 72
+        hud.addPet(at: 85)
+        hud.pets[0].y = 0
+        hud.pets[0].start(.idle, seconds: 1e9)
+
+        // 시간표: 소리 25% → 100% (16단계), 음소거, 밝기 10% → 100%
+        var cues: [(Double, () -> Void)] = []
+        var pressed: Int?
+        func press(_ at: Double, _ button: Int, _ kind: Playground.Gauge.Kind, _ level: Float) {
+            cues.append((at, { bar.showGauge(kind, level: level); hud.showGauge(kind, level: level); pressed = button }))
+            cues.append((at + 0.15, { pressed = nil }))
+        }
+        var t = 0.5
+        for step in 4...16 { press(t, 4, .volume, Float(step) / 16); t += 0.28 }
+        t += 0.6
+        press(t, 2, .muted, 0)
+        t += 1.2
+        for step in 2...16 { press(t, 1, .brightness, Float(step) / 16); t += 0.25 }
+        let symbols = ["sun.min.fill", "sun.max.fill", "speaker.slash.fill", "speaker.wave.1.fill", "speaker.wave.3.fill"]
+        let k: CGFloat = 1.5
+        let stripWidth = (210 + 8 + 5 * 44 - 4) * k
+        let origin = CGPoint(x: (size.width - stripWidth) / 2, y: 248)
+        let screen = CGRect(x: 28, y: 28, width: size.width - 56, height: 196)
+
+        return film(seconds: t + 1.8, size: size, worlds: [bar, hud], cues: cues) { ctx, _ in
+            flat(ctx, size, bg, seed: 29, avoid: [CGRect(x: 20, y: 20, width: size.width - 40, height: size.height - 30)])
+            title([tr("소리·밝기를 바꾸면 Clawd가 바를 들어요", "Change volume or brightness, Clawd holds up the bar")], in: size)
+            // Touch Bar
+            let strip = CGRect(x: origin.x - 8, y: origin.y - 8, width: stripWidth + 16, height: 30 * k + 16)
+            ctx.addPath(CGPath(roundedRect: strip, cornerWidth: 12, cornerHeight: 12, transform: nil))
+            ctx.setFillColor(CGColor(gray: 0, alpha: 1))
+            ctx.fillPath()
+            Art.draw(bar, in: ctx, at: origin, zoom: k, frame: false)
+            drawButtons(symbols, from: origin.x + (210 + 8) * k, y: origin.y, zoom: k, pressed: pressed, in: ctx)
+            // 화면: 바탕화면 + Dock, 그 위에 큰 Clawd
+            sticker(ctx, screen, fill: Art.rgb(120, 150, 200), shadow: shade, radius: 16)
+            let dock = CGRect(x: screen.midX - 150, y: screen.minY + 10, width: 300, height: 30)
+            ctx.addPath(CGPath(roundedRect: dock, cornerWidth: 10, cornerHeight: 10, transform: nil))
+            ctx.setFillColor(CGColor(gray: 1, alpha: 0.45))
+            ctx.fillPath()
+            if hud.gauge != nil {
+                Art.draw(hud, in: ctx, at: CGPoint(x: screen.midX - 85 * 1.2, y: dock.maxY + 14), zoom: 1.2, frame: false)
+            }
+            Art.text(tr("화면에도", "on screen"), Art.rounded(13, .bold), .white, in: CGRect(x: screen.minX + 14, y: screen.maxY - 28, width: 200, height: 20))
+            Art.text("Touch Bar", Art.rounded(13, .bold), Art.soft, in: CGRect(x: strip.minX, y: strip.maxY + 4, width: 200, height: 20))
+        }
+    }
+
+    /// 한도 맞추기 창 (예시 값을 넣은 채로)
+    private static func calibrationDialog() -> CGImage {
+        let form = CalibrationDialog.makeForm()
+        form.weekly.stringValue = "58"
+        form.fiveHour.stringValue = "42"
+        let alert = CalibrationDialog.makeAlert(form)
+        alert.layout()
+        let view = alert.window.contentView!
+        view.appearance = NSAppearance(named: .aqua)
+        let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
+        view.cacheDisplay(in: view.bounds, to: rep)
+        let window = view.bounds.size
+        let size = CGSize(width: window.width + 80, height: window.height + 80)
+        return Art.canvas(size) { ctx in
+            flat(ctx, size, Art.rgb(255, 241, 199), seed: 31, avoid: [CGRect(x: 30, y: 30, width: window.width + 20, height: window.height + 20)])
+            let frame = CGRect(x: 40, y: 40, width: window.width, height: window.height)
+            ctx.saveGState()
+            ctx.setShadow(offset: CGSize(width: 0, height: -8), blur: 24, color: Art.rgb(120, 90, 40, 0.3))
+            ctx.addPath(CGPath(roundedRect: frame, cornerWidth: 14, cornerHeight: 14, transform: nil))
+            ctx.setFillColor(Art.rgb(246, 246, 246))
+            ctx.fillPath()
+            ctx.restoreGState()
+            ctx.saveGState()
+            ctx.addPath(CGPath(roundedRect: frame, cornerWidth: 14, cornerHeight: 14, transform: nil))
+            ctx.clip()
+            if let image = rep.cgImage { ctx.draw(image, in: frame) }
+            ctx.restoreGState()
+        }
+    }
+}

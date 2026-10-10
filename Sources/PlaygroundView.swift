@@ -22,8 +22,14 @@ enum Renderer {
 
         for pet in world.pets {
             pet.bubbleFrame = nil
-            let frame = pet.frame
-            let centerX = pet.x + pet.shake
+            var frame = pet.frame
+            var centerX = pet.x + pet.shake
+            let holding = world.gauge.flatMap { $0.holder == ObjectIdentifier(pet) ? $0 : nil }
+            if let holding {
+                frame = holdingFrame(frame, holding)
+                // 시끄러우면 덜덜 떤다
+                if holding.kind == .volume, holding.level > 0.8 { centerX += (Int(pet.time / 0.05) % 2 == 0 ? -0.5 : 0.5) * px }
+            }
             ClawdSprite.draw(frame, in: ctx, centerX: centerX, bottom: pet.y, px: px, scale: scale,
                              color: Palette.clawd(heat: pet.heat))
             if pet.mood == .furious, Int(pet.time / 0.4) % 2 == 0 {
@@ -32,7 +38,10 @@ enum Renderer {
                 PixelArt.draw(PixelArt.anger, size: (5, 5), in: ctx, centerX: centerX + px * 7, centerY: top - smallPx,
                               px: smallPx, color: Palette.anger, scale: scale)
             }
-            if pet.showsClock {
+            if let holding {
+                drawGaugeSign(holding, centerX: centerX, headTop: pet.y + world.spriteHeight, world: world, in: ctx, scale: scale)
+                if holding.kind == .volume { drawNoise(level: holding.level, centerX: centerX, bottom: pet.y, time: pet.time, world: world, in: ctx, scale: scale) }
+            } else if pet.showsClock {
                 let headTop = pet.y + (frame.sitting ? px * 8 : world.spriteHeight)
                 drawClockSign(centerX: centerX, headTop: headTop, world: world, in: ctx, scale: scale)
             }
@@ -76,44 +85,79 @@ enum Renderer {
         for pet in world.pets.filter({ $0.bubble != nil }).sorted(by: { priority($0) < priority($1) }) {
             if let bubble = pet.bubble { drawBubble(bubble, for: pet, world: world, occupied: &occupied, in: ctx) }
         }
-        if let gauge = world.gauge { drawGauge(gauge, world: world, in: ctx) }
     }
 
-    /// 오른쪽 끝(밝기·소리 버튼 옆)에 16칸짜리 레벨 표시
-    private static func drawGauge(_ gauge: Playground.Gauge, world: Playground, in ctx: CGContext) {
-        let symbol: String
+    // MARK: - 레벨 바를 든 Clawd
+
+    /// 바를 머리 위로 받쳐 들고, 소리가 클수록 괴로워하고, 화면이 밝을수록 선글라스가 짙어진다
+    private static func holdingFrame(_ base: ClawdSprite.Frame, _ gauge: Playground.Gauge) -> ClawdSprite.Frame {
+        var f = base
+        f.armsUp = true
+        f.prop = .holdSign
+        f.sitting = false
+        if f.legs == .tucked { f.legs = .stand }
+        let level = CGFloat(gauge.level)
         switch gauge.kind {
-        case .brightness: symbol = "sun.max.fill"
-        case .volume: symbol = "speaker.wave.2.fill"
-        case .muted: symbol = "speaker.slash.fill"
+        case .muted:
+            f.eyes = .closed                                    // 조용~
+        case .volume:
+            f.eyes = level > 0.8 ? .frustrated : level > 0.55 ? .tired : level < 0.25 ? .happy : .open
+        case .brightness:
+            f.eyes = level < 0.15 ? .tired : .open             // 어두우면 눈이 가물가물
+            f.shades = level > 0.2 ? (level - 0.2) / 0.8 : 0
         }
-        let segments = 16
-        let segment: CGFloat = 4, gap: CGFloat = 2, icon: CGFloat = 16, pad: CGFloat = 7
-        let barWidth = CGFloat(segments) * (segment + gap) - gap
-        let width = pad + icon + 6 + barWidth + pad
-        let box = CGRect(x: (world.width - width - 3).rounded(), y: 4, width: width, height: 22)
+        return f
+    }
 
-        ctx.saveGState()
-        ctx.setAlpha(CGFloat(gauge.age < 1.2 ? 1 : max(0, 1 - (gauge.age - 1.2) / 0.4)))
-        ctx.addPath(CGPath(roundedRect: box, cornerWidth: 7, cornerHeight: 7, transform: nil))
-        ctx.setFillColor(Palette.bubbleFill)
-        ctx.fillPath()
+    private static let speakerIcon = ClawdSprite.cells(["..#....", ".##.#..", "###..#.", ".##.#..", "..#...."])
+    private static let mutedIcon = ClawdSprite.cells(["..#....", ".##.#.#", "###..#.", ".##.#.#", "..#...."])
+    private static let sunIcon = ClawdSprite.cells(["#.#.#", ".###.", "#####", ".###.", "#.#.#"])
 
-        let config = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
-            .applying(NSImage.SymbolConfiguration(paletteColors: [Palette.bubbleText]))
-        if let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?.withSymbolConfiguration(config) {
-            let size = image.size
-            image.draw(in: CGRect(x: box.minX + pad + (icon - size.width) / 2, y: box.midY - size.height / 2,
-                                  width: size.width, height: size.height))
+    /// 머리 위 팻말: 아이콘 + 16칸 바 (macOS 밝기·소리 단계와 같은 16칸)
+    private static func drawGaugeSign(_ gauge: Playground.Gauge, centerX: CGFloat, headTop: CGFloat, world: Playground,
+                                      in ctx: CGContext, scale: CGFloat) {
+        let sp = max(1, (world.px * 0.75 * scale).rounded() / scale)
+        let icon: [(Int, Int)]
+        switch gauge.kind {
+        case .brightness: icon = sunIcon
+        case .volume: icon = speakerIcon
+        case .muted: icon = mutedIcon
         }
-
-        let filled = gauge.kind == .muted ? 0 : Int((gauge.level * Float(segments)).rounded())
-        for i in 0..<segments {
-            ctx.setFillColor(i < filled ? Palette.clawd : CGColor(gray: 0.3, alpha: 1))
-            ctx.fill(CGRect(x: box.minX + pad + icon + 6 + CGFloat(i) * (segment + gap), y: box.midY - 4,
-                            width: segment, height: 8))
+        let iconWidth = (icon.map(\.0).max() ?? 0) + 1
+        let cells = 2 + iconWidth + 2 + 16 + 2
+        let box = CGRect(x: ClawdSprite.snap(centerX - CGFloat(cells) * sp / 2, scale), y: ClawdSprite.snap(headTop - 0.5, scale),
+                         width: CGFloat(cells) * sp, height: 7 * sp)
+        ctx.setFillColor(Palette.sign)
+        ctx.fill([box.insetBy(dx: sp, dy: 0), box.insetBy(dx: 0, dy: sp)])
+        ctx.setFillColor(Palette.signInk)
+        ctx.fill(icon.map { CGRect(x: box.minX + CGFloat(2 + $0.0) * sp, y: box.minY + CGFloat(5 - $0.1) * sp, width: sp, height: sp) })
+        let filled = gauge.kind == .muted ? 0 : Int((gauge.level * 16).rounded())
+        let fill = gauge.kind == .brightness ? Palette.treat : Palette.clawd
+        for i in 0..<16 {
+            ctx.setFillColor(i < filled ? fill : CGColor(gray: 0.78, alpha: 1))
+            ctx.fill(CGRect(x: box.minX + CGFloat(2 + iconWidth + 2 + i) * sp, y: box.minY + 2 * sp, width: sp, height: 3 * sp))
         }
-        ctx.restoreGState()
+    }
+
+    /// 소리가 클수록 머리 양옆에 소리 줄이 늘어난다 ( ))) )
+    private static func drawNoise(level: Float, centerX: CGFloat, bottom: CGFloat, time: Double, world: Playground,
+                                  in ctx: CGContext, scale: CGFloat) {
+        let count = level > 0.8 ? 3 : level > 0.55 ? 2 : level > 0.3 ? 1 : 0
+        guard count > 0 else { return }
+        let sp = max(1, (world.px * 0.5 * scale).rounded() / scale)
+        let wiggle = CGFloat(Int(time / 0.12) % 2) * sp
+        let midY = bottom + world.px * 6
+        ctx.setFillColor(CGColor(gray: 0.85, alpha: 1))
+        for i in 0..<count {
+            let offset = world.spriteWidth / 2 + sp * 2 + CGFloat(i) * sp * 3 + wiggle
+            for side in [-1.0, 1.0] as [CGFloat] {
+                let x = ClawdSprite.snap(centerX + side * offset, scale)
+                // ( 또는 ) 모양 세 칸
+                ctx.fill([CGRect(x: x, y: midY - sp, width: sp, height: sp * 3),
+                          CGRect(x: x - side * sp, y: midY - sp * 2, width: sp, height: sp),
+                          CGRect(x: x - side * sp, y: midY + sp * 2, width: sp, height: sp)])
+            }
+        }
     }
 
     private static let grumpyText = NSColor(srgbRed: 1.0, green: 0.6, blue: 0.55, alpha: 1)

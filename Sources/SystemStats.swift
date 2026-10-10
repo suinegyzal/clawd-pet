@@ -28,6 +28,9 @@ final class SystemStats {
         var fiveHour: Limit?
         var sevenDay: Limit?
         var updated: Date
+
+        /// 터미널 상태줄이 6시간 넘게 안 왔으면 한도 %는 이미 지난 숫자다
+        var isFresh: Bool { Date().timeIntervalSince(updated) < 6 * 3600 }
     }
 
     private(set) var cpu = 0.0              // 0...1
@@ -40,6 +43,8 @@ final class SystemStats {
     private(set) var download = 0.0         // 초당 바이트
     private(set) var upload = 0.0
     private(set) var claude: ClaudeUsage?
+    /// 대화 기록으로 센 토큰 (데스크톱 앱에서도 된다)
+    let tokens = TokenUsage()
 
     static let statusLineFile = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent(".clawd-touchbar/statusline.json")
@@ -66,6 +71,7 @@ final class SystemStats {
         sampleBattery()
         sampleNetwork()
         loadClaudeUsage()
+        if samples % 60 == 1 { tokens.refresh() }   // 1분마다, 새로 쌓인 기록만 읽는다
     }
 
     // MARK: - CPU

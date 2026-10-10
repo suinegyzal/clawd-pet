@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """~/.claude/settings.json 에 Clawd Pet 훅과 statusLine을 연결하거나(기본) 떼어 낸다(--remove).
 
-이 저장소를 받은 위치를 기준으로 경로를 넣기 때문에, 누가 어디에 받아도 그 사람 맥에 맞게 설정된다.
+스크립트는 앱과 같은 ~/.clawd-touchbar/bin 에 복사해 두고 그곳을 가리킨다.
+저장소 경로에는 공백·한글이 있을 수 있고 폴더를 옮기면 깨지기 때문이다.
 이미 있는 다른 설정은 그대로 두고, 바꾸기 전 원본은 settings.json.bak-clawd 로 남긴다.
 """
 import json
 import os
+import shutil
 import sys
 
 remove = "--remove" in sys.argv
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 root = os.path.abspath(args[0] if args else os.path.join(os.path.dirname(__file__), ".."))
 path = os.path.expanduser("~/.claude/settings.json")
+bin_dir = os.path.expanduser("~/.clawd-touchbar/bin")
 
 settings = {}
 if os.path.exists(path):
@@ -49,7 +52,12 @@ if remove:
         del settings["statusLine"]
 else:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    hook = os.path.join(root, "hooks", "clawd-hook.sh")
+    os.makedirs(bin_dir, exist_ok=True)
+    for name in ("clawd-hook.sh", "clawd-statusline.sh"):
+        target = os.path.join(bin_dir, name)
+        shutil.copyfile(os.path.join(root, "hooks", name), target)
+        os.chmod(target, 0o755)
+    hook = os.path.join(bin_dir, "clawd-hook.sh")
     for event, matcher in events:
         groups = hooks.setdefault(event, [])
         found = False
@@ -64,7 +72,7 @@ else:
                 group["matcher"] = matcher
             groups.append(group)
 
-    status_line = os.path.join(root, "hooks", "clawd-statusline.sh")
+    status_line = os.path.join(bin_dir, "clawd-statusline.sh")
     current = (settings.get("statusLine") or {}).get("command", "")
     if not current or current.endswith("clawd-statusline.sh"):
         settings["statusLine"] = {"type": "command", "command": status_line}

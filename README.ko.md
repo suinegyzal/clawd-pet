@@ -2,29 +2,51 @@
 
 [English](README.md) · **한국어**
 
-이것저것 만들어보는 공간입니다. 디놈들이 심심해서 만든 토큰 낭비 시리즈-
+![Clawd Pet — Claude Code의 작은 픽셀 친구](docs/ko/hero.png)
 
-![화면 위를 떠다니는 Clawd 여섯 마리. 일하는 녀석, 시계 든 녀석, 완료 말풍선](docs/preview.gif)
+Claude Code의 픽셀 마스코트 **Clawd**를 맥에 풀어놓는 작은 앱입니다.
+Claude가 쉬면 Clawd도 놀고, Claude가 일하면 Clawd도 일합니다. 디놈들이 심심해서 만든 토큰 낭비 시리즈-
 
-Claude Code의 픽셀 마스코트 **Clawd**를 맥 화면에 풀어놓는 작은 앱입니다.
-Claude가 쉬면 Clawd도 놀고, Claude가 일하면 Clawd도 일합니다.
+## ✨ 실제 MacBook Pro에서는 이렇게 보여요
 
-```
- ▐▛███▜▌
-▝▜█████▛▘
-  ▘▘ ▝▝
-```
+<p align="center">
+  <img src="docs/en/touchbar-tap.gif" width="100%" alt="실제 Touch Bar에서 완료! 말풍선을 톡 치면 Clawd가 하트를 보낸다"><br>
+  <b>Touch Bar의 "완료!"를 톡</b>: Clawd가 ♥로 고마워해요
+</p>
 
-개인이 취미로 만든 비공식 팬 프로젝트입니다. Anthropic과는 관계가 없고, Claude와 Clawd는 Anthropic의 상표·캐릭터입니다. 상업적 용도로 쓰지 않습니다.
+<table>
+  <tr>
+    <td width="50%"><img src="docs/real/real-brightness.gif" alt="밝기를 올리면 화면 아래와 Touch Bar의 Clawd가 바를 들고 선글라스가 짙어진다"></td>
+    <td width="50%"><img src="docs/real/real-volume.gif" alt="음소거를 풀고 소리를 키우면 Clawd가 바를 들고 괴로워한다"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>밝기를 올리면?</b> 선글라스가 점점 짙어져요</td>
+    <td align="center"><b>소리를 키우면?</b> 시끄러워서 괴로워해요</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/en/touchbar-clock.gif" alt="한 마리는 시계를 들고 두 마리는 낮잠 자는 Touch Bar"></td>
+    <td width="50%"><img src="docs/en/touchbar-runcat.gif" alt="CPU 100%일 때 달리는 Clawd와 Touch Bar 대시보드"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>시계 당번</b>: 한 마리는 시계, 나머지는 낮잠</td>
+    <td align="center"><b>CPU 100%?</b> RunCat처럼 열심히 달려요</td>
+  </tr>
+</table>
+
+> **비공식 팬 프로젝트입니다.** 재미로 만들었고 Anthropic과는 관계가 없습니다. Claude와 Clawd는 Anthropic의 상표·캐릭터입니다. 상업적 용도로 쓰지 않습니다.
+
+---
 
 ## 뭘 하는 앱인가요
 
 - **Claude Code를 따라 일해요.** Claude가 파일을 읽으면 책을 읽고, 명령을 실행하면 아령을 들고, 파일을 고치면 노트북을 두드립니다. 권한을 물어볼 땐 손을 흔들며 "잠깐!", 끝나면 "완료!" 말풍선을 들고 확인할 때까지 기다립니다. 일이 오래 걸리면 땀을 흘리다 점점 붉어지며 짜증을 냅니다.
+- **Claude 사용량을 보여 줘요.** 5시간 한도와 주간 한도를 %와 게이지로, 최근 7일은 하루씩 막대로 보여 줍니다. 메뉴 막대 메뉴와 Touch Bar 어디서든 볼 수 있습니다.
+- **소리·밝기에 반응해요.** 소리나 밝기를 바꾸면 Clawd가 레벨 바를 머리 위로 들어 보입니다. 시끄러울수록 괴로워하고, 밝을수록 선글라스가 짙어집니다. 화면 아래에도 큰 Clawd가 잠깐 나타납니다.
 - **Mac 상태에 따라 달려요.** CPU, GPU, 메모리 중 고른 기준으로, 바쁠수록 빨리 뛰어다니고 80%를 넘으면 땀을 흘립니다. 메뉴 막대 아이콘도 RunCat처럼 같은 박자로 달립니다.
 - **세 군데서 살아요.** 화면 위를 떠다니는 투명 창(Touch Bar 없는 맥 기본), 메뉴 막대 위, 그리고 Touch Bar가 있는 맥이면 Touch Bar 안.
 - **같이 놀 수 있어요.** 톡 치면 좋아하고, 끌어서 옮기고, 꾹 누르면 쓰다듬고, 세게 흔들면 어지러워합니다. 간식을 주면 달려와 먹고, 옆에 다른 Clawd가 있으면 뺏으러 옵니다. 커서가 다가오면 쳐다보고 손을 흔들고, 두 마리가 가까이 지나치면 서로 인사합니다. 밤 11시가 넘으면 하품하다 잠듭니다.
-- **키우는 맛이 있어요.** 쓰다듬고, 간식을 주고, 완료 알림을 확인해 주고, 같이 시간을 보내면 친밀도가 올라갑니다. 낯가림 → 아는 사이 → 친구 → 단짝 → 가족 → 영혼의 단짝. 친해질수록 하트가 많아지고, 다가가면 손을 흔들다가 단짝부터는 폴짝 뜁니다. 단계가 오르면 말풍선을 들고 축하합니다. Clawd마다 이름, 함께한 시간, 먹은 간식, 쓰다듬은 횟수도 남고, 이름도 지어 줄 수 있습니다.
-- **그 밖에.** 놀고 있을 땐 가끔 시계 팻말을 들고, 정각엔 "땡!". 선택 사항으로 Claude 예약 작업이 리서치한 아이디어를 말풍선으로 던져 주게 할 수도 있습니다.
+- **키우는 맛이 있어요.** 쓰다듬고, 간식을 주고, 완료 알림을 확인해 주고, 같이 시간을 보내면 친밀도가 올라갑니다. 낯가림 → 아는 사이 → 친구 → 단짝 → 가족 → 영혼의 단짝. Clawd마다 이름, 함께한 시간, 먹은 간식, 쓰다듬은 횟수도 남고, 이름도 지어 줄 수 있습니다.
+- **그 밖에.** 놀고 있을 땐 한 마리가 시계 팻말을 들고, 정각엔 "땡!". 선택 사항으로 Claude 예약 작업이 리서치한 아이디어를 💡 말풍선으로 하나씩 던져 주게 할 수도 있습니다.
 
 Claude Code 세션이 여러 개면 Clawd도 여러 마리 두세요. 한 마리가 세션 하나씩 맡습니다.
 
@@ -63,6 +85,8 @@ git clone https://github.com/suinegyzal/clawd-pet.git ~/Documents/ClawdPet && cd
 
 ### Claude를 따라 일해요
 
+<p align="center"><img src="docs/ko/motion/work.gif" width="440" alt="터미널에서 Claude가 읽고, 명령을 실행하고, 코드를 고치는 동안 Touch Bar의 Clawd가 공부하고, 아령을 들고, 타자를 치다가 완료! 말풍선을 든다"></p>
+
 | Claude가 하는 일 | Clawd가 하는 일 |
 |---|---|
 | 쉬는 중 | 걷기, 뛰기, 깡충깡충, 앉아서 쉬기, 자기 (오래 쉴수록 더 자주 잠) |
@@ -79,6 +103,8 @@ git clone https://github.com/suinegyzal/clawd-pet.git ~/Documents/ClawdPet && cd
 
 ### 오래 걸리면 짜증 내요
 
+<p align="center"><img src="docs/ko/motion/grumpy.gif" width="440" alt="요청한 지 0:12에서 12:48까지 시간이 빨리 흐르며 Clawd가 집중에서 땀, 김, 빨개져서 발 구르기까지 바뀌다가 끝나면 기뻐한다"></p>
+
 요청을 보낸 뒤 흐른 시간이 문구에 `· 7분`처럼 붙고, 시간이 갈수록 표정이 바뀝니다.
 
 | 걸린 시간 | Clawd |
@@ -88,7 +114,13 @@ git clone https://github.com/suinegyzal/clawd-pet.git ~/Documents/ClawdPet && cd
 | 5~10분 | 가끔 `> <` 찡그림, 머리에서 김, 살짝 붉어짐, "아직이야?" |
 | 10분 넘게 | 계속 찡그림, 💢, 새빨개져서 부들부들, 발 구르기, "언제 끝나!" |
 
+### 완료, 잠깐, 아이디어
+
+![완료!, 잠깐!, 💡 아이디어! 말풍선](docs/ko/done.png)
+
 ### 놀 때는
+
+<p align="center"><img src="docs/ko/motion/play.gif" width="440" alt="Touch Bar의 Clawd 세 마리: 한 마리는 시계를 들고 땡!, 한 마리는 낮잠, 떨어진 간식을 두고 경주하고, 한 마리는 쓰다듬어진다"></p>
 
 - **시계**: 노는 Clawd가 둘 이상이면 한 마리가 시계 팻말을 들고 다닙니다. 혼자면 가끔 들어 보여 줍니다. 정각엔 "땡!"
 - **RunCat처럼**: Mac이 바쁠수록(기본 CPU) 더 자주, 더 빨리 달립니다. 메뉴 막대 아이콘의 Clawd도 제자리에서 바쁜 만큼 빨리 달립니다.
@@ -97,22 +129,60 @@ git clone https://github.com/suinegyzal/clawd-pet.git ~/Documents/ClawdPet && cd
 
 ### 메뉴 막대와 Touch Bar
 
+<p align="center"><img src="docs/ko/motion/menubar.gif" width="440" alt="macOS 메뉴 막대에서 일하던 Clawd가 완료! 오타 고쳤어요! 말풍선을 들고, 클릭하면 하트를 보낸다"></p>
+
+![메뉴 막대와 Touch Bar의 Clawd](docs/ko/places.png)
+
 - **메뉴 막대**: Touch Bar와 같은 수의 Clawd가 같은 행동을 합니다. 메뉴 막대 클릭은 그대로 통과하고, Clawd 위에서만 클릭됩니다. 전체 화면 앱에서는 보이지 않습니다.
 - **Touch Bar** (있는 맥만): Touch Bar 설정이 "확장된 Control Strip"이면 Touch Bar 전체를 쓰면서, 오른쪽에 **밝기 −/+ · 음소거 · 볼륨 −/+** 버튼과 작은 Mac 상태 대시보드(CPU·메모리 / GPU·저장 공간 / 배터리·네트워크)를 함께 보여 줍니다.
 
+### 소리·밝기를 바꾸면 Clawd가 바를 들어요
+
+<p align="center"><img src="docs/ko/usage/levels.gif" width="100%" alt="소리를 25%에서 100%까지 올리고, 음소거하고, 밝기를 10%에서 100%까지 올리는 동안 Touch Bar와 화면의 Clawd가 바를 들고 반응한다"></p>
+
+- Clawd의 Touch Bar 버튼, 키보드, 어디서 바꾸든 Clawd 한 마리가 레벨 바(16칸)를 머리 위로 받쳐 듭니다. 시계를 들던 Clawd가 있으면 그 Clawd가 시계 대신 듭니다.
+- **소리**: 작으면 웃는 눈 → 커질수록 머리 옆 소리 줄 `( )`이 늘고 → 70%쯤부터 찡그리고 → 80%를 넘으면 `> <` 눈으로 덜덜 떱니다. 음소거면 눈을 감고 평온해요.
+- **밝기**: 어두우면 눈이 가물가물 → 밝아질수록 선글라스가 생기고 짙어지고 → 90%를 넘으면 새까만 선글라스에 반짝이까지.
+- **화면에도**: 메뉴의 **소리·밝기 바꿀 때 화면에도 Clawd 보이기**를 켜 두면(기본) Dock 바로 위에 큰 Clawd가 2초쯤 나타났다 사라집니다. 클릭은 그대로 통과하고, 자동 밝기처럼 천천히 바뀌는 건 무시합니다.
+
+### Claude 사용량
+
+<p align="center"><img src="docs/ko/usage/usage-menu.png" width="100%" alt="메뉴 막대 메뉴의 Claude 사용량 탭(5시간 한도 42%, 주간 한도 58%, 최근 7일 막대)과 Mac 상태 탭"></p>
+
+<p align="center"><img src="docs/ko/usage/usage-touchbar.gif" width="100%" alt="Touch Bar의 사용량 칸이 5시간 한도, 주간 한도, 최근 7일 막대로 넘어간다"></p>
+
+- **메뉴 막대 메뉴 → Claude 사용량 탭**: **5시간 한도**와 **주간 한도**를 큰 %와 게이지로, 초기화 시각·남은 시간과 함께 보여 줍니다. 아래엔 최근 7일 하루씩 막대와 토큰 수. 옆 **Mac 상태** 탭에는 CPU·GPU·메모리·저장 공간·배터리·네트워크가 있습니다.
+- **Touch Bar**: `5h 42% · ↻ 3h27m` → `7d 58% · ↻ 4d19h` → `7d 793M`(하루씩 막대)이 5초마다 번갈아 나옵니다. 톡 치면 바로 넘어가고, 메뉴의 **Touch Bar에 Claude 사용량 보기**로 켜고 끕니다.
+
+#### 처음 한 번 "한도 맞추기" (주간 %를 보려면)
+
+<p align="center"><img src="docs/ko/usage/calibrate.png" width="420" alt="한도 맞추기 창: 주간 사용 %, 주간 초기화 요일과 시각, 5시간 사용 %"></p>
+
+공식 한도 %는 Anthropic만 알고, 데스크톱 앱은 이 숫자를 다른 앱에 넘겨주지 않습니다. 그래서 한 번만 알려 주세요.
+
+1. 메뉴 → **Claude 사용량** 탭 → **한도 맞추기…**
+2. **사용량 페이지 열기**로 claude.ai → 설정 → 사용량을 열고, 보이는 **주간 %와 초기화 요일·시각**(원하면 5시간 %도)을 넣고 **저장**.
+3. 이 Mac의 Claude Code 기록(`~/.claude/projects`)과 비교해 한도 크기를 추정하고, 그다음부터는 기록이 쌓이는 만큼 %를 계속 따라갑니다.
+
+- 터미널에서 `claude`를 쓰면 상태줄이 공식 %를 알려 주고, 그 숫자로 저절로 다시 맞춥니다.
+- 5시간 한도는 맞추지 않아도 내 기록(한도에 걸렸던 때, 없으면 지난 7일 중 가장 많이 쓴 5시간)과 비교해 보여 줍니다. 제목 옆 회색 꼬리표가 무엇 대비 %인지 알려 줍니다.
+- 양은 가격 비율로 환산합니다(출력 ×5, 캐시 읽기 ×0.1). 캐시 읽기는 토큰 수는 많아도 한도에 주는 부담이 작기 때문입니다. 다른 기기나 claude.ai 채팅에서 쓴 양은 이 Mac 기록에 없어서 추정치가 조금씩 어긋날 수 있으니, 가끔 다시 맞춰 주세요.
 
 ### 메뉴 막대 메뉴
 
 Clawd 아이콘을 누르면 나오는 메뉴에서:
-- Claude 상태, Mac 상태(CPU·GPU·메모리·저장 공간·배터리·네트워크)를 한눈에 봅니다.
+- 맨 위에 Claude 상태, 그 아래 **[Mac 상태 | Claude 사용량] 탭** (위 [Claude 사용량](#claude-사용량) 참고, 고른 탭은 기억합니다)
 - 완료 알림 모두 확인, 💡 아이디어 목록, 간식 주기, Clawd 추가/빼기
-- 달리기 기준(CPU·메모리·GPU), 메뉴 막대에서 돌아다니기, Touch Bar 관련 설정
+- 달리기 기준(CPU·메모리·GPU), 메뉴 막대에서 돌아다니기, Touch Bar 설정(Claude 사용량 · Mac 상태 · 밝기·소리 버튼), 소리·밝기 바꿀 때 화면에도 Clawd 보이기
+- Claude Code 연결/끊기, 로그인할 때 자동 실행
 - **언어 · Language**: 자동(맥 언어 따라), English, 한국어 중에서 고르면 메뉴와 말풍선이 바로 바뀝니다. 앱을 다시 켜도 기억합니다.
 - 종료
 
 ---
 
 ## 화면 위 모드 (Touch Bar 없는 맥)
+
+![화면 위를 떠다니는 Clawd 여섯 마리. 일하는 녀석, 시계 든 녀석, 완료 말풍선](docs/preview.gif)
 
 Touch Bar가 없는 맥에서는 Clawd가 화면 위를 떠다니는 투명 창에서 삽니다. 연동, 말풍선, 간식, 들어 올리기는 Touch Bar와 똑같이 동작합니다.
 
@@ -173,7 +243,8 @@ cd ~/Documents/ClawdPet && ./uninstall.sh
 | 메뉴 막대에 Clawd가 안 보여요 | 메뉴 → "메뉴 막대에서 돌아다니기"가 켜져 있는지, 메뉴 막대 자동 숨김을 쓰고 있지 않은지 확인하세요. |
 | Touch Bar에 안 나와요 | 메뉴 → "Touch Bar에 보이기"를 누르세요. Touch Bar 왼쪽 ✕로 닫았을 수 있습니다. |
 | 완료 알림이 계속 떠 있어요 | 일부러 그렇게 만들었습니다. Clawd나 말풍선을 클릭하거나, 메뉴 → "완료 알림 모두 확인"을 누르세요. |
-| Claude 사용량(5시간·7일)이 안 나와요 | 이 정보는 터미널의 Claude Code(CLI) 상태줄에서만 들어옵니다. 데스크톱 앱만 쓰면 나오지 않습니다. |
+| 주간 한도 %가 안 나와요 | 처음 한 번 메뉴 → Claude 사용량 → **한도 맞추기…**를 해 주세요. 터미널에서 `claude`를 쓰면 저절로 맞춰집니다. |
+| 사용량 %가 claude.ai와 조금 달라요 | 다른 기기나 claude.ai 채팅에서 쓴 양은 이 Mac 기록에 없어서 그렇습니다. **한도 맞추기…**로 다시 맞춰 주세요. |
 | `./install.sh`가 권한 오류를 내요 | `chmod +x install.sh uninstall.sh build.sh hooks/*.sh` 후 다시 실행하세요. |
 
 ---
@@ -208,7 +279,8 @@ git tag v1.0.1 && git push origin v1.0.1
 | `Sources/ClaudeLink.swift`, `Transcript.swift` | Claude Code 훅 이벤트 읽기, 세션 상태·주제·완료 요약 |
 | `Sources/IdeaBox.swift` | 💡 아이디어 목록 |
 | `Sources/SystemStats.swift`, `Runner.swift`, `MetricsView.swift` | Mac 상태, RunCat 달리기, Touch Bar 대시보드 |
-| `Sources/SystemControls.swift` | 밝기·볼륨 조절 |
+| `Sources/SystemControls.swift`, `LevelHUD.swift` | 밝기·볼륨 조절, 바를 든 Clawd(화면), 소리·밝기 변화 감지 |
+| `Sources/TokenUsage.swift`, `UsageLimits.swift`, `UsageViews.swift` | Claude 사용량 집계, 한도 % 추정·맞추기, 메뉴 탭·Touch Bar 표시 |
 | `Sources/App.swift`, `TouchBarPrivate.swift` | 앱 시작, 메뉴, Touch Bar 띄우기 |
 | `hooks/` | Claude Code 훅·상태줄 스크립트, 설정 연결 스크립트 |
 
@@ -220,6 +292,9 @@ git tag v1.0.1 && git push origin v1.0.1
 ./build.sh && open build/ClawdPet.app                               # 고친 뒤 바로 띄워 보기
 build/ClawdPet.app/Contents/MacOS/ClawdPet --preview           # Touch Bar 대신 일반 창에서 미리보기
 build/ClawdPet.app/Contents/MacOS/ClawdPet --snapshot out.png  # 여러 장면을 PNG 한 장으로
+CLAWD_LANG=ko build/ClawdPet.app/Contents/MacOS/ClawdPet --render-docs docs/ko          # README 그림
+CLAWD_LANG=ko build/ClawdPet.app/Contents/MacOS/ClawdPet --render-reddit docs/ko/motion # README 움직이는 그림
+CLAWD_LANG=ko build/ClawdPet.app/Contents/MacOS/ClawdPet --render-usage docs/ko/usage   # 사용량·소리·밝기 그림
 ```
 
 ---

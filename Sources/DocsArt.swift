@@ -170,10 +170,11 @@ enum DocsArt {
             background(ctx, size, [peach, lavender, sky], seed: 7, avoid: [CGRect(x: 60, y: 250, width: 720, height: 310), CGRect(x: 100, y: 30, width: 1000, height: 160)])
 
             text("Clawd Pet", rounded(88, .heavy), ink, in: CGRect(x: 70, y: 440, width: 700, height: 110))
-            text("A tiny pixel buddy for Claude Code.\nIt lives in your Mac's menu bar & Touch Bar,\nplays when Claude rests, and works when Claude works.",
+            text(tr("Claude Code의 작은 픽셀 친구.\n맥의 메뉴 막대와 Touch Bar에 살면서\nClaude가 쉬면 놀고, 일하면 같이 일해요.",
+                    "A tiny pixel buddy for Claude Code.\nIt lives in your Mac's menu bar & Touch Bar,\nplays when Claude rests, and works when Claude works."),
                  rounded(25, .medium), soft, in: CGRect(x: 72, y: 318, width: 700, height: 120))
             var x: CGFloat = 72
-            for (label, color) in [("macOS 12+", butter), ("Claude Code", blush), ("Free & open source", mint)] {
+            for (label, color) in [("macOS 12+", butter), ("Claude Code", blush), (tr("무료 · 오픈 소스", "Free & open source"), mint)] {
                 x += pill(label, at: CGPoint(x: x, y: 262), fill: color) + 10
             }
 
@@ -192,13 +193,13 @@ enum DocsArt {
             _ = place(world, at: 300)                    // 일하는 중
             let keeper = place(world, at: 600, facing: -1)
             run(world, 1.5)
-            link.handle(["session_id": "d", "hook_event_name": "Stop", "last_assistant_message": "Added dark mode to settings."])
-            work(link, "w", "Fix the login bug", tool: "Edit", minutesAgo: 1.5)
+            link.handle(["session_id": "d", "hook_event_name": "Stop", "last_assistant_message": tr("설정에 다크 모드를 넣었어요.", "Added dark mode to settings.")])
+            work(link, "w", tr("로그인 버그 고쳐 줘", "Fix the login bug"), tool: "Edit", minutesAgo: 1.5)
             run(world, 0.6)
             keeper.start(.clock, seconds: 100)
             run(world, 1.2)
             draw(world, in: ctx, at: CGPoint(x: 120, y: 90), zoom: 1.5)
-            text("↑ your Touch Bar (or menu bar) on a normal day", rounded(17, .semibold), soft,
+            text(tr("↑ 평범한 날의 Touch Bar (또는 메뉴 막대)", "↑ your Touch Bar (or menu bar) on a normal day"), rounded(17, .semibold), soft,
                  in: CGRect(x: 120, y: 40, width: 960, height: 24), align: .center)
         }
     }
@@ -209,12 +210,13 @@ enum DocsArt {
         return canvas(size) { ctx in
             background(ctx, size, [mint, sky], seed: 11)
             card(ctx, CGRect(x: 30, y: 30, width: size.width - 60, height: size.height - 60))
-            heading("When Claude works, Clawd works ✻", "Clawd mirrors what Claude Code is doing, with the task's topic and how long it's been.", in: size)
+            heading(tr("Claude가 일하면 Clawd도 일해요 ✻", "When Claude works, Clawd works ✻"),
+                    tr("Claude Code가 하는 일을 따라 하고, 무슨 주제인지와 얼마나 걸렸는지도 보여 줘요.", "Clawd mirrors what Claude Code is doing, with the task's topic and how long it's been."), in: size)
 
             let rows: [(String, String, String)] = [
-                ("📖  Reading & searching  →  studying", "Read", "Read the API docs"),
-                ("🏋️  Running commands  →  working out", "Bash", "Run the test suite"),
-                ("💻  Editing code  →  typing away", "Edit", "Fix the login bug"),
+                (tr("📖  읽고 찾으면  →  공부", "📖  Reading & searching  →  studying"), "Read", tr("API 문서 읽어 줘", "Read the API docs")),
+                (tr("🏋️  명령을 실행하면  →  운동", "🏋️  Running commands  →  working out"), "Bash", tr("테스트 돌려 줘", "Run the test suite")),
+                (tr("💻  코드를 고치면  →  타자", "💻  Editing code  →  typing away"), "Edit", tr("로그인 버그 고쳐 줘", "Fix the login bug")),
             ]
             for (i, row) in rows.enumerated() {
                 let y = size.height - 262 - CGFloat(i) * 128
@@ -235,9 +237,11 @@ enum DocsArt {
         return canvas(size) { ctx in
             background(ctx, size, [butter, peach], seed: 23)
             card(ctx, CGRect(x: 30, y: 30, width: size.width - 60, height: size.height - 60))
-            heading("Long task? Clawd gets grumpy 😤", "The longer Claude takes, the sweatier, redder and grumpier Clawd gets.", in: size)
+            heading(tr("오래 걸리면 Clawd가 짜증 내요 😤", "Long task? Clawd gets grumpy 😤"),
+                    tr("Claude가 오래 걸릴수록 땀 흘리고, 빨개지고, 투덜거려요.", "The longer Claude takes, the sweatier, redder and grumpier Clawd gets."), in: size)
 
-            let stages: [(String, Double)] = [("0–2 min · focused", 0.5), ("2–5 min · tired", 3), ("5–10 min · annoyed", 7), ("10+ min · furious", 12)]
+            let stages: [(String, Double)] = [(tr("0–2분 · 집중", "0–2 min · focused"), 0.5), (tr("2–5분 · 지침", "2–5 min · tired"), 3),
+                                              (tr("5–10분 · 짜증", "5–10 min · annoyed"), 7), (tr("10분 넘게 · 폭발", "10+ min · furious"), 12)]
             for (i, stage) in stages.enumerated() {
                 let column = CGFloat(i % 2), row = CGFloat(i / 2)
                 let origin = CGPoint(x: 90 + column * 540, y: 270 - row * 160)
@@ -245,7 +249,7 @@ enum DocsArt {
                 let (world, link) = makeWorld(width: 230)
                 _ = place(world, at: 26)
                 run(world, 1.5)
-                work(link, "m\(i)", "Ship v2", tool: i % 2 == 0 ? "Edit" : "Bash", minutesAgo: stage.1)
+                work(link, "m\(i)", tr("v2 배포", "Ship v2"), tool: i % 2 == 0 ? "Edit" : "Bash", minutesAgo: stage.1)
                 run(world, 1.0 + Double(i) * 0.35)
                 draw(world, in: ctx, at: origin, zoom: 2)
             }
@@ -258,17 +262,19 @@ enum DocsArt {
         return canvas(size) { ctx in
             background(ctx, size, [blush, lavender], seed: 31)
             card(ctx, CGRect(x: 30, y: 30, width: size.width - 60, height: size.height - 60))
-            heading("Done! …and it waits until you check", "Clawd holds up what Claude finished (until you click it), asks before risky commands, and pitches ideas.", in: size)
+            heading(tr("완료! …확인할 때까지 기다려요", "Done! …and it waits until you check"),
+                    tr("Claude가 끝낸 일을 들고 있다가(클릭할 때까지), 위험한 명령 전엔 물어보고, 아이디어도 던져요.",
+                       "Clawd holds up what Claude finished (until you click it), asks before risky commands, and pitches ideas."), in: size)
 
-            text("✅  When a task finishes — click Clawd to jump back to that session", rounded(19, .bold), ink, in: CGRect(x: 80, y: 380, width: 1040, height: 28))
+            text(tr("✅  일이 끝나면 — Clawd를 클릭하면 그 세션으로 돌아가요", "✅  When a task finishes — click Clawd to jump back to that session"), rounded(19, .bold), ink, in: CGRect(x: 80, y: 380, width: 1040, height: 28))
             let (world, link) = makeWorld(width: 500)
             _ = place(world, at: 40)
             run(world, 1.5)
-            link.handle(["session_id": "d", "hook_event_name": "Stop", "last_assistant_message": "Fixed the login bug and added 3 tests."])
+            link.handle(["session_id": "d", "hook_event_name": "Stop", "last_assistant_message": tr("로그인 버그를 고치고 테스트 3개를 추가했어요.", "Fixed the login bug and added 3 tests.")])
             run(world, 1.2)
             draw(world, in: ctx, at: CGPoint(x: 90, y: 302), zoom: 2)
 
-            text("✋  Before a command that needs your OK", rounded(19, .bold), ink, in: CGRect(x: 80, y: 240, width: 520, height: 28))
+            text(tr("✋  허락이 필요한 명령 앞에서", "✋  Before a command that needs your OK"), rounded(19, .bold), ink, in: CGRect(x: 80, y: 240, width: 520, height: 28))
             let (ask, askLink) = makeWorld(width: 245)
             _ = place(ask, at: 26)
             run(ask, 1.5)
@@ -276,16 +282,16 @@ enum DocsArt {
             run(ask, 1.0)
             draw(ask, in: ctx, at: CGPoint(x: 90, y: 162), zoom: 2)
 
-            text("💡  Ideas from your own research routine", rounded(19, .bold), ink, in: CGRect(x: 620, y: 240, width: 520, height: 28))
+            text(tr("💡  내 리서치 루틴이 찾은 아이디어", "💡  Ideas from your own research routine"), rounded(19, .bold), ink, in: CGRect(x: 620, y: 240, width: 520, height: 28))
             let (idea, _) = makeWorld(width: 245)
             let pitcher = place(idea, at: 26)
             run(idea, 1.5)
-            pitcher.pitch(IdeaBox.Idea(id: "docs", topic: "Blog", title: "‘Remote day’ vlog",
+            pitcher.pitch(IdeaBox.Idea(id: "docs", topic: tr("블로그", "Blog"), title: tr("‘재택 하루’ 브이로그", "‘Remote day’ vlog"),
                                        detail: "", report: nil, created: nil), in: idea)
             run(idea, 1.4)
             draw(idea, in: ctx, at: CGPoint(x: 630, y: 162), zoom: 2)
 
-            text("Click Clawd (or tap it on the Touch Bar) to mark it read — notices survive restarts.",
+            text(tr("Clawd를 클릭하면(Touch Bar에선 톡) 확인한 걸로 쳐요 — 앱을 다시 켜도 알림은 남아 있어요.", "Click Clawd (or tap it on the Touch Bar) to mark it read — notices survive restarts."),
                  rounded(16, .medium), soft, in: CGRect(x: 80, y: 70, width: 1040, height: 24))
         }
     }
@@ -296,10 +302,11 @@ enum DocsArt {
         return canvas(size) { ctx in
             background(ctx, size, [sky, lavender, blush], seed: 47)
             card(ctx, CGRect(x: 30, y: 30, width: size.width - 60, height: size.height - 60))
-            heading("Playtime when Claude rests", "Pet it, feed it, let it nap — and watch it sprint when your Mac gets busy.", in: size)
+            heading(tr("Claude가 쉬면 놀아요", "Playtime when Claude rests"),
+                    tr("쓰다듬고, 간식 주고, 낮잠 재우고 — 맥이 바빠지면 열심히 달려요.", "Pet it, feed it, let it nap — and watch it sprint when your Mac gets busy."), in: size)
 
             let scenes: [(String, (Playground) -> Void)] = [
-                ("🕐  One Clawd always holds the clock", { world in
+                (tr("🕐  한 마리는 늘 시계를 들어요", "🕐  One Clawd always holds the clock"), { world in
                     let keeper = place(world, at: 40)
                     _ = place(world, at: 180, facing: -1)
                     run(world, 1.5)
@@ -307,7 +314,7 @@ enum DocsArt {
                     world.pets[1].start(.idle, seconds: 100)
                     run(world, 0.8)
                 }),
-                ("✻  Drop a treat and it runs to eat it", { world in
+                (tr("✻  간식을 떨어뜨리면 달려가 먹어요", "✻  Drop a treat and it runs to eat it"), { world in
                     _ = place(world, at: 40)
                     run(world, 1.5)
                     world.dropTreat(at: 170)
@@ -316,13 +323,13 @@ enum DocsArt {
                     }
                     run(world, 0.25)
                 }),
-                ("💤  Naps (more at night)", { world in
+                (tr("💤  낮잠 (밤엔 더 자주)", "💤  Naps (more at night)"), { world in
                     let sleeper = place(world, at: 60)
                     run(world, 1.5)
                     sleeper.start(.sleep, seconds: 100)
                     run(world, 2.2)
                 }),
-                ("🏃  Busy Mac? It sprints, like RunCat", { world in
+                (tr("🏃  맥이 바쁘면 RunCat처럼 달려요", "🏃  Busy Mac? It sprints, like RunCat"), { world in
                     let runner = place(world, at: 60)
                     run(world, 1.5)
                     world.busy = 1
@@ -347,7 +354,9 @@ enum DocsArt {
         return canvas(size) { ctx in
             background(ctx, size, [lavender, mint], seed: 59)
             card(ctx, CGRect(x: 30, y: 30, width: size.width - 60, height: size.height - 60))
-            heading("Lives in your menu bar — and your Touch Bar", "No Touch Bar? Clawds roam the menu bar (clicks pass right through). Got one? They move in there too.", in: size)
+            heading(tr("메뉴 막대에도, Touch Bar에도 살아요", "Lives in your menu bar — and your Touch Bar"),
+                    tr("Touch Bar가 없으면 메뉴 막대를 돌아다니고(클릭은 그대로 통과), 있으면 Touch Bar에도 들어가요.",
+                       "No Touch Bar? Clawds roam the menu bar (clicks pass right through). Got one? They move in there too."), in: size)
 
             // 메뉴 막대 흉내: 배경 화면 + 반투명 메뉴 막대 + 그 위를 걷는 Clawd들
             let k: CGFloat = 2
@@ -361,9 +370,9 @@ enum DocsArt {
             ctx.setFillColor(CGColor(gray: 1, alpha: 0.78))
             ctx.fill(bar)
             ctx.restoreGState()
-            text("  Finder   File   Edit   View", NSFont.systemFont(ofSize: 13 * k, weight: .medium), .black,
+            text(tr("  Finder   파일   편집   보기", "  Finder   File   Edit   View"), NSFont.systemFont(ofSize: 13 * k, weight: .medium), .black,
                  in: CGRect(x: bar.minX + 10, y: bar.minY + 8, width: 700, height: 36))
-            text("Tue 9:41 AM", NSFont.systemFont(ofSize: 13 * k, weight: .medium), .black,
+            text(tr("화 오전 9:41", "Tue 9:41 AM"), NSFont.systemFont(ofSize: 13 * k, weight: .medium), .black,
                  in: CGRect(x: bar.maxX - 190, y: bar.minY + 8, width: 180, height: 36), align: .right)
             if let runner = RunnerClock.menuBarImages(px: 1.5 * k).first {
                 runner.draw(in: CGRect(x: bar.maxX - 260, y: bar.minY + (bar.height - runner.size.height) / 2,
@@ -374,7 +383,7 @@ enum DocsArt {
             let (menu, menuLink) = makeWorld(width: free.width / k, height: 24, px: 1.5, transparent: true)
             _ = place(menu, at: 14)
             run(menu, 1.5)
-            work(menuLink, "m", "Write the README", tool: "Edit", minutesAgo: 0.8)
+            work(menuLink, "m", tr("README 써 줘", "Write the README"), tool: "Edit", minutesAgo: 0.8)
             run(menu, 1.2)
             draw(menu, in: ctx, at: free.origin, zoom: k, frame: false)
 
@@ -388,7 +397,7 @@ enum DocsArt {
             let toucher = place(touch, at: 330, facing: -1)
             _ = place(touch, at: 450)
             run(touch, 1.5)
-            work(touchLink, "t", "Refactor the API", tool: "Bash", minutesAgo: 0.6)
+            work(touchLink, "t", tr("API 정리해 줘", "Refactor the API"), tool: "Bash", minutesAgo: 0.6)
             run(touch, 0.5)
             toucher.start(.clock, seconds: 100)
             run(touch, 0.8)
@@ -407,7 +416,7 @@ enum DocsArt {
                                           width: image.size.width, height: image.size.height))
                 }
             }
-            text("Touch Bar: Clawds + brightness & volume keys + a tiny Mac dashboard", rounded(16, .semibold), .white,
+            text(tr("Touch Bar: Clawd + 밝기·소리 버튼 + 작은 Mac 대시보드", "Touch Bar: Clawds + brightness & volume keys + a tiny Mac dashboard"), rounded(16, .semibold), .white,
                  in: CGRect(x: 120, y: 80, width: 800, height: 24))
         }
     }
